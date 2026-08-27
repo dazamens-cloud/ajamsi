@@ -82,6 +82,7 @@
   "compilador_videos": {
     "formato": "mp4",
     "resolucion": "1080x1920",
+    "bitrate": "5000k",
     "fps": 30,
     "duracion_min": 15,
     "duracion_max": 60,
