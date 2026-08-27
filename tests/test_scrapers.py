@@ -132,6 +132,24 @@ def test_cronicas_lanzarote_scraper(config):
     test_scraper_especifico(config, "Crónicas", CronicasLanzaroteScraper)
 
 
+def test_noticias_lanzarote_scraper(config):
+    """Test: Validar NoticiasLanzaroteScraper"""
+    from src.scrapers import NoticiasLanzaroteScraper
+    test_scraper_especifico(config, "Noticias", NoticiasLanzaroteScraper)
+
+
+def test_diario_lanzarote_scraper(config):
+    """Test: Validar DiarioLanzaroteScraper"""
+    from src.scrapers import DiarioLanzaroteScraper
+    test_scraper_especifico(config, "Diario", DiarioLanzaroteScraper)
+
+
+def test_periodico_lanzarote_scraper(config):
+    """Test: Validar PeriodoLanzaroteScraper"""
+    from src.scrapers import PeriodoLanzaroteScraper
+    test_scraper_especifico(config, "Periódico", PeriodoLanzaroteScraper)
+
+
 def run_all_tests():
     """Ejecutar todos los tests"""
     print("\n" + "="*60)
@@ -154,6 +172,9 @@ def run_all_tests():
         # Test 5: Validar scrapers específicos
         test_lancelot_digital_scraper(config)
         test_cronicas_lanzarote_scraper(config)
+        test_noticias_lanzarote_scraper(config)
+        test_diario_lanzarote_scraper(config)
+        test_periodico_lanzarote_scraper(config)
 
         # Resumen
         print("\n" + "="*60)

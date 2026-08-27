@@ -10,6 +10,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from .base_scraper import Noticia
 from .lancelot_digital import LancelotDigitalScraper
 from .cronicas_lanzarote import CronicasLanzaroteScraper
+from .noticias_lanzarote import NoticiasLanzaroteScraper
+from .diario_lanzarote import DiarioLanzaroteScraper
+from .periodico_lanzarote import PeriodoLanzaroteScraper
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +40,9 @@ class ScraperManager:
         self.scrapers_disponibles = {
             "Lancelot Digital": LancelotDigitalScraper,
             "Crónicas de Lanzarote": CronicasLanzaroteScraper,
+            "Noticias de Lanzarote": NoticiasLanzaroteScraper,
+            "Diario de Lanzarote": DiarioLanzaroteScraper,
+            "El Periódico de Lanzarote": PeriodoLanzaroteScraper,
             # Aquí irán más scrapers conforme los creemos
         }
 
