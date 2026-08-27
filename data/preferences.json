@@ -1,0 +1,60 @@
+{
+  "tendencias_positivas": {
+    "temas": [
+      "viento canario",
+      "cultura local",
+      "humor sardónico",
+      "tradiciones lanzaroteñas",
+      "vida cotidiana",
+      "turismo local",
+      "gastronomía canaria"
+    ],
+    "estilos": [
+      "ilustración estilo folclórico",
+      "colores cálidos",
+      "personaje consistente (El Típico)",
+      "elementos locales identificables"
+    ],
+    "engagement": {
+      "promedio_likes": 0,
+      "promedio_views": 0,
+      "promedio_shares": 0,
+      "promedio_comments": 0
+    }
+  },
+  "tendencias_negativas": {
+    "temas_fallidos": [],
+    "estilos_evitar": [
+      "realismo fotográfico",
+      "temas genéricos sin contexto",
+      "política controversial",
+      "contenido triste/negativo"
+    ]
+  },
+  "prompts_efectivos": [
+    "A canarian man in traditional dress with [X], illustrated style, folklorique, warm colors, humorous expression",
+    "Canarian coastal scene with humor about [Y], illustrated style, local elements, funny situation",
+    "El Típico canario character reacting to [Z], humorous, illustrated, traditional Lanzarote background"
+  ],
+  "metricas": {
+    "videos_totales": 0,
+    "videos_exitosos": 0,
+    "tasa_exito": 0.0,
+    "mejor_tema": null,
+    "peor_tema": null,
+    "mejor_estilo": null,
+    "peor_estilo": null
+  },
+  "personaje": {
+    "nombre": "El Típico",
+    "isla": "Lanzarote",
+    "caracteristicas": [
+      "humor sardónico",
+      "referencia local",
+      "personaje folclórico",
+      "vestuario tradicional"
+    ]
+  },
+  "historial_feedback": [],
+  "ultima_actualizacion": null
+}

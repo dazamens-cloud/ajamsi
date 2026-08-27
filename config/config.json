@@ -1,0 +1,92 @@
+{
+  "proyecto": {
+    "nombre": "AjamSi",
+    "descripcion": "Sistema automático de generación de contenido TikTok desde noticias de Canarias",
+    "isla": "Lanzarote",
+    "cuenta_tiktok": "@hummorkana"
+  },
+  "scrapers": {
+    "fuentes": [
+      {
+        "nombre": "Lancelot Digital",
+        "url": "https://www.lancelotdigital.com/lanzarote",
+        "prioridad": 1,
+        "activo": true
+      },
+      {
+        "nombre": "Crónicas de Lanzarote",
+        "url": "https://www.cronicasdelanzarote.es/",
+        "prioridad": 1,
+        "activo": true
+      },
+      {
+        "nombre": "Noticias de Lanzarote",
+        "url": "https://www.noticiasdelanzarote.com/",
+        "prioridad": 1,
+        "activo": true
+      },
+      {
+        "nombre": "Diario de Lanzarote",
+        "url": "https://www.diariodelanzarote.com/",
+        "prioridad": 1,
+        "activo": true
+      },
+      {
+        "nombre": "El Periódico de Lanzarote",
+        "url": "https://www.elperiodicodelanzarote.com/",
+        "prioridad": 1,
+        "activo": true
+      },
+      {
+        "nombre": "Canarias Ahora",
+        "url": "https://www.eldiario.es/canariasahora/",
+        "prioridad": 2,
+        "activo": true
+      }
+    ],
+    "dias_atras": 7,
+    "timeout": 10,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  },
+  "generador_ideas": {
+    "modelo": "claude-3-5-sonnet",
+    "temperatura": 0.7,
+    "max_tokens": 500,
+    "idioma": "es",
+    "tono": "humor_sardónico_canario"
+  },
+  "generador_imagenes": {
+    "proveedor": "gemini",
+    "modelo": "gemini-2.0-flash",
+    "resolucion": "1024x1024",
+    "estilo": "ilustración_folclórica_canaria"
+  },
+  "compilador_videos": {
+    "formato": "mp4",
+    "resolucion": "1080x1920",
+    "fps": 30,
+    "duracion_min": 15,
+    "duracion_max": 60,
+    "codec_video": "libx264",
+    "codec_audio": "aac"
+  },
+  "google_drive": {
+    "sincronizar": true,
+    "carpeta_sync": "AjamSi_Backups",
+    "carpeta_imagenes": "AjamSi_Imagenes",
+    "carpeta_videos": "AjamSi_Videos"
+  },
+  "procesamiento": {
+    "por_bloques": true,
+    "videos_por_bloque": 7,
+    "esperar_entre_bloques_ms": 2000
+  },
+  "base_datos": {
+    "tipo": "sqlite",
+    "archivo": "data/ajamsi.db"
+  },
+  "aprendizaje": {
+    "archivo_preferencias": "data/preferences.json",
+    "actualizar_cada_feedback": true
+  }
+}
