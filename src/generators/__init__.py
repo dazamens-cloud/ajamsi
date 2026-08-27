@@ -1,5 +1,14 @@
 """
 Módulo de generadores para AjamSi
+
+Genera ideas creativas de memes desde noticias scrapeadas
 """
 
-__all__ = []
+from .base_idea_generator import BaseIdeaGenerator, Idea
+from .claude_idea_generator import ClaudeIdeaGenerator
+
+__all__ = [
+    'BaseIdeaGenerator',
+    'Idea',
+    'ClaudeIdeaGenerator'
+]
