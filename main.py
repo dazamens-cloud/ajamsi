@@ -55,7 +55,8 @@ def main():
 
         # Cargar configuración
         print(f"{Fore.GREEN}Inicializando AjamSi Pipeline...{Style.RESET_ALL}")
-        pipeline = AjamSiPipeline(CONFIG_FILE)
+        config = ConfigLoader(CONFIG_FILE)
+        pipeline = AjamSiPipeline(config.to_dict())
 
         print(f"{Fore.GREEN}✓ Pipeline inicializado{Style.RESET_ALL}")
         print(f"{Fore.GREEN}✓ Base de datos conectada{Style.RESET_ALL}")
