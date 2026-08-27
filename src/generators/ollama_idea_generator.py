@@ -63,8 +63,8 @@ class OllamaIdeaGenerator(BaseIdeaGenerator):
             Lista de ideas generadas
         """
         if not self.disponible:
-            logger.warning("Ollama no disponible, usando fallback")
-            return self._generar_ideas_fallback(noticia, num_ideas)
+            logger.warning("Ollama no disponible, usando ideas genéricas")
+            return self._crear_ideas_genericas(noticia, num_ideas)
 
         try:
             # Extraer tema
@@ -89,18 +89,18 @@ class OllamaIdeaGenerator(BaseIdeaGenerator):
 
             if response.status_code != 200:
                 logger.error(f"Error Ollama: {response.status_code}")
-                return self._generar_ideas_fallback(noticia, num_ideas)
+                return self._crear_ideas_genericas(noticia, num_ideas)
 
             # Parsear respuesta
             resultado = response.json()
             contenido = resultado.get("response", "")
             ideas = self._parsear_respuesta(contenido, noticia, elementos, colores)
 
-            return ideas if ideas else self._generar_ideas_fallback(noticia, num_ideas)
+            return ideas if ideas else self._crear_ideas_genericas(noticia, num_ideas)
 
         except Exception as e:
             logger.error(f"Error con Ollama: {e}")
-            return self._generar_ideas_fallback(noticia, num_ideas)
+            return self._crear_ideas_genericas(noticia, num_ideas)
 
     def _crear_prompt_qwen(self, noticia: Noticia, num_ideas: int, tema: str) -> str:
         """
@@ -182,6 +182,45 @@ Ideas:"""
                     ideas.append(idea)
 
         except json.JSONDecodeError:
-            logger.warning("No se pudo parsear JSON de Qwen, usando fallback")
+            logger.warning("No se pudo parsear JSON de Qwen, usando ideas genéricas")
 
-        return ideas if ideas else self._generar_ideas_fallback(noticia, 3)
+        return ideas if ideas else self._crear_ideas_genericas(noticia, 3)
+
+    def _crear_ideas_genericas(self, noticia: Noticia, num_ideas: int) -> List[Idea]:
+        """Crear ideas genéricas como fallback"""
+        ideas_fallback = [
+            Idea(
+                titulo="Reacción sorprendida",
+                noticia_id=noticia.titulo,
+                concepto="Cara de sorpresa ante la noticia",
+                angulo_humor="sarcasmo",
+                personaje="El Típico Canario",
+                estilo="canario_moderno",
+                colores=["#FFD700", "#FF6347"],
+                elementos_locales=["Bandera de Canarias", "Playa"],
+                prompts_sugeridos=[]
+            ),
+            Idea(
+                titulo="Antes y después",
+                noticia_id=noticia.titulo,
+                concepto="Comparación antes/después de la noticia",
+                angulo_humor="irónico",
+                personaje="El Típico Canario",
+                estilo="canario_moderno",
+                colores=["#1E90FF", "#FF69B4"],
+                elementos_locales=["Volcán", "Paisaje canario"],
+                prompts_sugeridos=[]
+            ),
+            Idea(
+                titulo="Sátira política",
+                noticia_id=noticia.titulo,
+                concepto="Crítica ingeniosa sobre la situación",
+                angulo_humor="satírico",
+                personaje="El Típico Canario",
+                estilo="canario_moderno",
+                colores=["#228B22", "#FFD700"],
+                elementos_locales=["Carnaval de Canarias", "Música local"],
+                prompts_sugeridos=[]
+            ),
+        ]
+        return ideas_fallback[:num_ideas]
