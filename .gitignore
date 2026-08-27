@@ -51,6 +51,13 @@ logs/*
 !logs/.gitkeep
 output/*
 !output/.gitkeep
+videos/*
+!videos/.gitkeep
+
+# Imágenes del proyecto (excepto generadas)
+# imagenes/ - incluir en git (contiene recursos base)
+generadas/*
+!generadas/.gitkeep
 
 # Database
 *.db

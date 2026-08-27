@@ -79,6 +79,14 @@
     "resolucion": "1024x1024",
     "estilo": "ilustración_folclórica_canaria"
   },
+  "personajes": {
+    "el_tipico": {
+      "nombre": "El Típico Canario",
+      "imagen": "imagenes/el_tipico_canario.png",
+      "descripcion": "Personaje folclórico canario en traje típico tradicional",
+      "activo": true
+    }
+  },
   "compilador_videos": {
     "formato": "mp4",
     "resolucion": "1080x1920",
