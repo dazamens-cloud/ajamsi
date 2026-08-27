@@ -4,21 +4,33 @@ Manejo de base de datos SQLite para AjamSi
 
 import sqlite3
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
+
+logger = logging.getLogger(__name__)
 
 class DatabaseManager:
     """Gestor de base de datos SQLite"""
 
-    def __init__(self, db_path: str | Path):
+    def __init__(self, config_or_path: Union[Dict, str, Path]):
         """
         Inicializar gestor de base de datos
 
         Args:
-            db_path: Ruta al archivo de base de datos
+            config_or_path: Configuración dict o ruta al archivo de base de datos
         """
-        self.db_path = Path(db_path)
+        # Extraer db_path de config si es necesario
+        if isinstance(config_or_path, dict):
+            db_file = config_or_path.get("base_datos", {}).get("archivo", "data/ajamsi.db")
+            self.db_path = Path(db_file)
+        else:
+            self.db_path = Path(config_or_path)
+
+        # Crear directorio si no existe
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+
         self.connection = None
         self.initialize()
 
@@ -193,6 +205,94 @@ class DatabaseManager:
         stats['noticias_usadas'] = cursor.fetchone()[0]
 
         return stats
+
+    def guardar_noticia(self, noticia) -> Optional[int]:
+        """
+        Guardar objeto Noticia en la base de datos
+
+        Args:
+            noticia: Objeto Noticia (dataclass)
+
+        Returns:
+            ID de la noticia insertada o None si error
+        """
+        try:
+            return self.insertar_noticia(
+                titulo=noticia.titulo,
+                url=noticia.url,
+                fuente=noticia.fuente,
+                contenido=noticia.contenido,
+                fecha_pub=noticia.fecha_publicacion
+            )
+        except Exception as e:
+            logger.error(f"Error guardando noticia: {e}")
+            return None
+
+    def guardar_idea(self, idea) -> Optional[int]:
+        """
+        Guardar objeto Idea en la base de datos
+
+        Args:
+            idea: Objeto Idea (dataclass)
+
+        Returns:
+            ID de la idea insertada o None si error
+        """
+        try:
+            return self.insertar_idea(
+                noticia_id=idea.noticia_id or 1,  # Fallback si no hay noticia_id
+                concepto=idea.concepto,
+                angulo_humor=idea.angulo_humor
+            )
+        except Exception as e:
+            logger.error(f"Error guardando idea: {e}")
+            return None
+
+    def guardar_video(self, video) -> Optional[int]:
+        """
+        Guardar objeto Video en la base de datos
+
+        Args:
+            video: Objeto Video (dataclass)
+
+        Returns:
+            ID del video insertado o None si error
+        """
+        try:
+            return self.insertar_video(
+                imagen_id=1,  # Fallback (relacionar con imagen después)
+                idea_id=1,    # Fallback (relacionar con idea después)
+                ruta_archivo=video.ruta_archivo,
+                guion="",     # Sin guion por ahora
+                duracion=video.duracion_segundos
+            )
+        except Exception as e:
+            logger.error(f"Error guardando video: {e}")
+            return None
+
+    def contar_noticias(self) -> int:
+        """Contar total de noticias en la BD"""
+        cursor = self.connection.cursor()
+        cursor.execute('SELECT COUNT(*) FROM noticias')
+        return cursor.fetchone()[0]
+
+    def contar_ideas(self) -> int:
+        """Contar total de ideas en la BD"""
+        cursor = self.connection.cursor()
+        cursor.execute('SELECT COUNT(*) FROM ideas')
+        return cursor.fetchone()[0]
+
+    def contar_imagenes(self) -> int:
+        """Contar total de imágenes en la BD"""
+        cursor = self.connection.cursor()
+        cursor.execute('SELECT COUNT(*) FROM imagenes')
+        return cursor.fetchone()[0]
+
+    def contar_videos(self) -> int:
+        """Contar total de videos en la BD"""
+        cursor = self.connection.cursor()
+        cursor.execute('SELECT COUNT(*) FROM videos')
+        return cursor.fetchone()[0]
 
     def cerrar(self):
         """Cerrar conexión a la base de datos"""
