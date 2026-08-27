@@ -47,19 +47,19 @@
         "nombre": "Canarias7",
         "url": "https://www.canarias7.es/",
         "prioridad": 1,
-        "activo": false
+        "activo": true
       },
       {
         "nombre": "ecanarias.net",
         "url": "https://ecanarias.net/",
         "prioridad": 2,
-        "activo": false
+        "activo": true
       },
       {
         "nombre": "Diario de Avisos",
         "url": "https://diariodeavisos.elespanol.com/",
         "prioridad": 2,
-        "activo": false
+        "activo": true
       }
     ],
     "dias_atras": 7,

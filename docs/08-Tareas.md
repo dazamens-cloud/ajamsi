@@ -21,7 +21,7 @@
 
 ## FASE 1: Implementación de Core 🔄 EN PROGRESO
 
-### Web Scraper Funcional
+### Web Scraper Funcional (9 fuentes)
 - [x] Crear módulo `base_scraper.py` (clase abstracta)
 - [x] Crear módulo `scraper_manager.py` (orquestador)
 - [x] Implementar scraping para Lancelot Digital ✅ COMPLETADO
@@ -29,13 +29,18 @@
 - [ ] Implementar scraping para Noticias de Lanzarote
 - [ ] Implementar scraping para Diario de Lanzarote
 - [ ] Implementar scraping para El Periódico de Lanzarote
+- [ ] Implementar scraping para Canarias7 (NEW)
 - [ ] Implementar scraping para Canarias Ahora
+- [ ] Implementar scraping para ecanarias.net (NEW)
+- [ ] Implementar scraping para Diario de Avisos (NEW)
 - [ ] Test de scraper con URLs reales
 - [ ] Integración con DatabaseManager para guardar en DB
 
-**Completado:** 40% (1 de 6 fuentes)  
-**Estimado:** 2-3 días más (para las 5 fuentes restantes)  
+**Completado:** 11% (1 de 9 fuentes)  
+**Estimado:** 3-4 días más (para las 8 fuentes restantes)  
 **Prioridad:** 🔴 ALTA
+
+**Estado Facebook/Twitter:** ❌ DESCARTADOS (visto riesgo/complejidad)
 
 ### Generador de Ideas
 - [ ] Crear módulo `generators/idea_generator.py`
