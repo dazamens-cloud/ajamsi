@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .base_scraper import Noticia
 from .lancelot_digital import LancelotDigitalScraper
+from .cronicas_lanzarote import CronicasLanzaroteScraper
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ class ScraperManager:
         # Mapeo de scrapers (nombre_fuente -> clase_scraper)
         self.scrapers_disponibles = {
             "Lancelot Digital": LancelotDigitalScraper,
+            "Crónicas de Lanzarote": CronicasLanzaroteScraper,
             # Aquí irán más scrapers conforme los creemos
         }
 

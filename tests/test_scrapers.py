@@ -95,33 +95,41 @@ def test_scraper_config(config):
         print(f"    - {fuente['nombre']} ({estado})")
 
 
-def test_lancelot_digital_scraper(config):
-    """Test: Validar LancelotDigitalScraper específicamente"""
-    print("\n✓ TEST: Validando LancelotDigitalScraper...")
+def test_scraper_especifico(config, nombre_scraper, clase_scraper):
+    """Test: Validar un scraper específicamente"""
+    print(f"\n✓ TEST: Validando {nombre_scraper}...")
 
-    from src.scrapers import LancelotDigitalScraper
-
-    # Obtener config de Lancelot
+    # Obtener config del scraper
     fuentes = config.get("scrapers.fuentes", [])
-    lancelot_config = next((f for f in fuentes if "Lancelot" in f.get("nombre", "")), None)
+    scraper_config = next((f for f in fuentes if nombre_scraper in f.get("nombre", "")), None)
 
-    if not lancelot_config:
-        print("  ⚠ Lancelot Digital no está configurado")
+    if not scraper_config:
+        print(f"  ⚠ {nombre_scraper} no está configurado")
         return
 
     # Crear scraper
-    scraper = LancelotDigitalScraper(lancelot_config)
+    scraper = clase_scraper(scraper_config)
 
     assert scraper is not None, "Scraper no se inicializó"
-    assert scraper.nombre == lancelot_config["nombre"], "Nombre incorrecto"
-    assert scraper.url_base == lancelot_config["url"], "URL incorrecto"
+    assert scraper.nombre == scraper_config["nombre"], "Nombre incorrecto"
+    assert scraper.url_base == scraper_config["url"], "URL incorrecto"
 
     print(f"  ✓ Scraper inicializado: {scraper.nombre}")
     print(f"  ✓ URL base: {scraper.url_base}")
     print(f"  ✓ Prioridad: {scraper.prioridad}")
-
-    # Nota: No hacemos scraping real aquí para evitar problemas de red
     print(f"  ✓ Estructura del scraper validada")
+
+
+def test_lancelot_digital_scraper(config):
+    """Test: Validar LancelotDigitalScraper"""
+    from src.scrapers import LancelotDigitalScraper
+    test_scraper_especifico(config, "Lancelot", LancelotDigitalScraper)
+
+
+def test_cronicas_lanzarote_scraper(config):
+    """Test: Validar CronicasLanzaroteScraper"""
+    from src.scrapers import CronicasLanzaroteScraper
+    test_scraper_especifico(config, "Crónicas", CronicasLanzaroteScraper)
 
 
 def run_all_tests():
@@ -143,8 +151,9 @@ def run_all_tests():
         # Test 4: Inicializar manager
         manager = test_scraper_manager_init(config)
 
-        # Test 5: Validar scraper específico
+        # Test 5: Validar scrapers específicos
         test_lancelot_digital_scraper(config)
+        test_cronicas_lanzarote_scraper(config)
 
         # Resumen
         print("\n" + "="*60)
