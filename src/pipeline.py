@@ -120,8 +120,7 @@ class AjamSiPipeline:
         try:
             logger.info("Scrapeando 9 fuentes de noticias...")
             noticias = self.scraper_manager.scrapear_todas_fuentes(
-                paralelo=True,
-                max_noticias=50
+                paralelo=True
             )
 
             logger.info(f"✓ Scrapeadas {len(noticias)} noticias")
