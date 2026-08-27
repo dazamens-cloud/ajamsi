@@ -50,58 +50,62 @@ def main():
     print_header()
 
     try:
-        # Cargar configuración
-        print(f"{Fore.GREEN}Inicializando...{Style.RESET_ALL}")
-        config = ConfigLoader(CONFIG_FILE)
-        db = DatabaseManager(DATABASE_FILE)
+        # Importar Pipeline
+        from pipeline import AjamSiPipeline
 
-        print(f"{Fore.GREEN}✓ Configuración cargada{Style.RESET_ALL}")
+        # Cargar configuración
+        print(f"{Fore.GREEN}Inicializando AjamSi Pipeline...{Style.RESET_ALL}")
+        pipeline = AjamSiPipeline(CONFIG_FILE)
+
+        print(f"{Fore.GREEN}✓ Pipeline inicializado{Style.RESET_ALL}")
         print(f"{Fore.GREEN}✓ Base de datos conectada{Style.RESET_ALL}")
 
         # Mostrar información de proyecto
-        print(f"\nProyecto: {config.get('proyecto.nombre')}")
-        print(f"Isla: {config.get('proyecto.isla')}")
-        print(f"Cuenta: {config.get('proyecto.cuenta_tiktok')}")
+        print(f"\n{Fore.CYAN}Proyecto:{Style.RESET_ALL} AjamSi v{APP_VERSION}")
+        print(f"{Fore.CYAN}Isla:{Style.RESET_ALL} Lanzarote")
+        print(f"{Fore.CYAN}Cuenta:{Style.RESET_ALL} @hummorkana")
 
-        # Mostrar estadísticas
-        stats = db.obtener_stats()
-        print(f"\n{Fore.CYAN}ESTADÍSTICAS:{Style.RESET_ALL}")
-        print(f"  Total noticias: {stats['total_noticias']}")
-        print(f"  Total ideas: {stats['total_ideas']}")
-        print(f"  Total imágenes: {stats['total_imagenes']}")
-        print(f"  Total videos: {stats['total_videos']}")
-        print(f"  Noticias usadas: {stats['noticias_usadas']}")
+        # Mostrar estadísticas iniciales
+        stats = pipeline.obtener_estadisticas()
+        print(f"\n{Fore.CYAN}ESTADÍSTICAS ACTUALES:{Style.RESET_ALL}")
+        print(f"  Noticias: {stats.get('noticias', 0)}")
+        print(f"  Ideas: {stats.get('ideas', 0)}")
+        print(f"  Imágenes: {stats.get('imagenes', 0)}")
+        print(f"  Videos: {stats.get('videos', 0)}")
 
-        # Menú
-        while True:
-            print_menu()
-            opcion = input(f"{Fore.YELLOW}Selecciona opción: {Style.RESET_ALL}").strip()
+        # Ejecutar pipeline completo
+        print(f"\n{Fore.YELLOW}Ejecutando pipeline completo...{Style.RESET_ALL}\n")
 
-            if opcion == "0":
-                print(f"{Fore.GREEN}¡Hasta pronto!{Style.RESET_ALL}")
-                break
-            elif opcion == "1":
-                print(f"{Fore.CYAN}[DESARROLLO] Scraping de noticias{Style.RESET_ALL}")
-            elif opcion == "2":
-                print(f"{Fore.CYAN}[DESARROLLO] Generación de ideas{Style.RESET_ALL}")
-            elif opcion == "3":
-                print(f"{Fore.CYAN}[DESARROLLO] Generación de imágenes{Style.RESET_ALL}")
-            elif opcion == "4":
-                print(f"{Fore.CYAN}[DESARROLLO] Compilación de videos{Style.RESET_ALL}")
-            elif opcion == "5":
-                stats = db.obtener_stats()
-                print(f"\n{Fore.CYAN}ESTADÍSTICAS ACTUALES:{Style.RESET_ALL}")
-                for key, value in stats.items():
-                    print(f"  {key}: {value}")
-            elif opcion == "6":
-                print(f"{Fore.CYAN}[DESARROLLO] Configuración de preferencias{Style.RESET_ALL}")
-            else:
-                print(f"{Fore.RED}Opción no válida{Style.RESET_ALL}")
+        resultado = pipeline.ejecutar_completo(
+            num_ideas_por_noticia=3,
+            compilar_videos=True
+        )
 
-        db.cerrar()
+        # Mostrar resumen
+        print(f"\n{Fore.CYAN}RESUMEN DE EJECUCIÓN:{Style.RESET_ALL}")
+        print(f"  ✅ Noticias scrapeadas: {resultado.get('noticias_scrapeadas', 0)}")
+        print(f"  ✅ Ideas generadas: {resultado.get('ideas_generadas', 0)}")
+        print(f"  ✅ Videos compilados: {resultado.get('videos_compilados', 0)}")
+
+        if resultado.get('errores'):
+            print(f"  ⚠️  Errores: {len(resultado.get('errores', []))}")
+
+        # Sincronizar a Google Drive
+        print(f"\n{Fore.YELLOW}Sincronizando con Google Drive...{Style.RESET_ALL}")
+        sync_result = pipeline.sincronizar_a_nube()
+
+        print(f"{Fore.CYAN}Sincronización:{Style.RESET_ALL}")
+        print(f"  Archivos: {sync_result.get('archivos_sincronizados', 0)}")
+        print(f"  Tamaño: {sync_result.get('tamaño_bytes', 0) / (1024**2):.1f} MB")
+
+        print(f"\n{Fore.GREEN}{'='*60}")
+        print(f"✅ ¡PIPELINE COMPLETADO EXITOSAMENTE!")
+        print(f"{'='*60}{Style.RESET_ALL}\n")
 
     except Exception as e:
         print(f"{Fore.RED}❌ Error: {e}{Style.RESET_ALL}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 
