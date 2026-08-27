@@ -12,6 +12,7 @@ from src.scrapers import ScraperManager, Noticia
 from src.generators import ClaudeIdeaGenerator, Idea
 from src.processors import FFmpegVideoCompiler, Video
 from src.sync import GoogleDriveSync
+from src.feedback import PreferenceFeedbackSystem, TipoFeedback
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,7 @@ class AjamSiPipeline:
         self.generador_ideas = ClaudeIdeaGenerator(self.config)
         self.compilador_videos = FFmpegVideoCompiler(self.config)
         self.drive_sync = GoogleDriveSync(self.config)
+        self.feedback_system = PreferenceFeedbackSystem(self.config)
 
         logger.info("✓ Pipeline AjamSi inicializado")
 
@@ -246,6 +248,44 @@ class AjamSiPipeline:
         except Exception as e:
             logger.error(f"Error obteniendo estadísticas: {e}")
             return {}
+
+    def registrar_feedback(self, tipo: TipoFeedback, idea_id: Optional[str] = None,
+                          video_id: Optional[str] = None, tema: Optional[str] = None,
+                          angulo: Optional[str] = None, elementos: Optional[list] = None,
+                          comentario: Optional[str] = None) -> bool:
+        """
+        Registrar feedback del usuario
+
+        Args:
+            tipo: TipoFeedback (EXCELENTE, ACEPTABLE, MALO)
+            idea_id: ID de idea (opcional)
+            video_id: ID de video (opcional)
+            tema: Tema de noticia (opcional)
+            angulo: Ángulo humorístico (opcional)
+            elementos: Elementos locales (opcional)
+            comentario: Comentario (opcional)
+
+        Returns:
+            True si se registró
+        """
+        return self.feedback_system.registrar_feedback(
+            tipo=tipo,
+            idea_id=idea_id,
+            video_id=video_id,
+            tema=tema,
+            angulo=angulo,
+            elementos=elementos,
+            comentario=comentario
+        )
+
+    def obtener_reporte_feedback(self) -> str:
+        """
+        Obtener reporte de feedback y preferencias
+
+        Returns:
+            Texto con reporte
+        """
+        return self.feedback_system.generar_reporte_feedback()
 
     def sincronizar_a_nube(self) -> dict:
         """
