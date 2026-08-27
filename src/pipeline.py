@@ -13,6 +13,7 @@ from src.generators import ClaudeIdeaGenerator, Idea
 from src.processors import FFmpegVideoCompiler, Video
 from src.sync import GoogleDriveSync
 from src.feedback import PreferenceFeedbackSystem, TipoFeedback
+from src.reports import WordReporter
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,7 @@ class AjamSiPipeline:
         self.compilador_videos = FFmpegVideoCompiler(self.config)
         self.drive_sync = GoogleDriveSync(self.config)
         self.feedback_system = PreferenceFeedbackSystem(self.config)
+        self.word_reporter = WordReporter(self.config)
 
         logger.info("✓ Pipeline AjamSi inicializado")
 
@@ -98,6 +100,10 @@ class AjamSiPipeline:
             # ETAPA 4: Guardar en BD
             logger.info("\n💾 ETAPA 4: Guardando en base de datos")
             self._guardar_en_bd(noticias, ideas)
+
+            # ETAPA 5: Generar reporte Word
+            logger.info("\n📄 ETAPA 5: Generando reporte Word")
+            self._generar_reporte_word(noticias, ideas, [])
 
             logger.info("\n" + "=" * 60)
             logger.info("✅ Pipeline completado exitosamente")
@@ -331,6 +337,57 @@ class AjamSiPipeline:
         except Exception as e:
             logger.error(f"Error sincronizando: {e}", exc_info=True)
             return {"exitoso": False, "mensaje": str(e)}
+
+    def _generar_reporte_word(self, noticias: List[Noticia],
+                             ideas: List[Idea], videos: List[Video]) -> str:
+        """
+        Generar reporte Word con noticias e ideas
+
+        Args:
+            noticias: Noticias scrapeadas
+            ideas: Ideas generadas
+            videos: Videos compilados
+
+        Returns:
+            Ruta del archivo generado
+        """
+        try:
+            # Convertir a diccionarios
+            noticias_dict = [
+                {
+                    "titulo": n.titulo,
+                    "fuente": n.fuente,
+                    "url": n.url,
+                    "contenido": n.contenido,
+                    "fecha_publicacion": n.fecha_publicacion,
+                }
+                for n in noticias
+            ]
+
+            ideas_dict = [
+                {
+                    "titulo": i.titulo,
+                    "concepto": i.concepto,
+                    "angulo_humor": i.angulo_humor,
+                    "elementos_locales": i.elementos_locales,
+                    "colores": i.colores,
+                    "descripcion": f"{i.angulo_humor} - {i.concepto}"
+                }
+                for i in ideas
+            ]
+
+            ruta = self.word_reporter.generar_reporte(
+                noticias=noticias_dict,
+                ideas=ideas_dict,
+                videos=[]
+            )
+
+            logger.info(f"✓ Reporte Word generado: {ruta}")
+            return ruta
+
+        except Exception as e:
+            logger.error(f"Error generando reporte Word: {e}")
+            return ""
 
     def __repr__(self) -> str:
         return "<AjamSiPipeline: Scraper + Generator + Compiler + DB>"
