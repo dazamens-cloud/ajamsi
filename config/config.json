@@ -98,7 +98,9 @@
     "codec_audio": "aac"
   },
   "google_drive": {
+    "habilitado": true,
     "sincronizar": true,
+    "credentials_file": "credentials.json",
     "carpeta_sync": "AjamSi_Backups",
     "carpeta_imagenes": "AjamSi_Imagenes",
     "carpeta_videos": "AjamSi_Videos"
