@@ -42,6 +42,24 @@
         "url": "https://www.eldiario.es/canariasahora/",
         "prioridad": 2,
         "activo": true
+      },
+      {
+        "nombre": "Canarias7",
+        "url": "https://www.canarias7.es/",
+        "prioridad": 1,
+        "activo": false
+      },
+      {
+        "nombre": "ecanarias.net",
+        "url": "https://ecanarias.net/",
+        "prioridad": 2,
+        "activo": false
+      },
+      {
+        "nombre": "Diario de Avisos",
+        "url": "https://diariodeavisos.elespanol.com/",
+        "prioridad": 2,
+        "activo": false
       }
     ],
     "dias_atras": 7,
