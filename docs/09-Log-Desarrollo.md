@@ -213,16 +213,56 @@
 
 ---
 
+### Sesión 15: FASE 4 - Pipeline Central + DatabaseManager (Manhours: 1.5)
+
+**Objetivo:** Orquestar todo el flujo y guardar en BD
+
+**Tareas completadas:**
+- ✅ `src/pipeline.py` - Orquestador central (226 líneas)
+  - AjamSiPipeline con 4 etapas
+  - Coordina: Scraper → Generator → Compiler → DB
+  - Método ejecutar_completo() con resumen
+  - Estadísticas integradas
+  - Error handling robusto
+
+- ✅ `src/utils/db.py` - DatabaseManager mejorado (+80 líneas)
+  - Constructor flexible (config dict o path)
+  - guardar_noticia(noticia: Noticia)
+  - guardar_idea(idea: Idea)
+  - guardar_video(video: Video)
+  - contar_noticias/ideas/videos/imagenes()
+  - Logging completo
+
+- ✅ Personaje base "El Típico"
+  - Descargado imagen del protagonista de TikTok
+  - Guardado en imagenes/el_tipico_canario.png
+  - Actualizado config.json con referencia
+
+- ✅ Documentación 12-FASE4-Pipeline-DatabaseManager.md
+
+**Commits:**
+- 1868412 - Agregar personaje base + config
+- 66ba4d5 - FASE 4: Pipeline central
+
+**Learnings:**
+1. Pipeline centralizado simplifica todo
+2. Constructor flexible en DB es útil
+3. Logging en cada etapa facilita debugging
+
+**Próximo:** FASE 5 - Google Drive Sync
+
+---
+
 ## Estadísticas Generales
 
 | Métrica | Valor |
 |---------|-------|
-| Sesiones completadas | 14 |
-| Horas invertidas | ~18 |
-| Líneas de código | ~4,000+ |
-| Archivos creados | 35+ |
-| Commits | 13 |
-| Fases completadas | 3/6 (50%) |
+| Sesiones completadas | 15 |
+| Horas invertidas | ~19.5 |
+| Líneas de código | ~4,650 |
+| Archivos creados | 38+ |
+| Commits | 15 |
+| Fases completadas | 4/6 (67%) |
 | Scrapers completados | 9/9 (100%) |
 | Bugs encontrados | 0 |
 
