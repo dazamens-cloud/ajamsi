@@ -11,6 +11,7 @@ from src.utils.db import DatabaseManager
 from src.scrapers import ScraperManager, Noticia
 from src.generators import ClaudeIdeaGenerator, Idea
 from src.processors import FFmpegVideoCompiler, Video
+from src.sync import GoogleDriveSync
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,7 @@ class AjamSiPipeline:
         self.scraper_manager = ScraperManager(self.config)
         self.generador_ideas = ClaudeIdeaGenerator(self.config)
         self.compilador_videos = FFmpegVideoCompiler(self.config)
+        self.drive_sync = GoogleDriveSync(self.config)
 
         logger.info("✓ Pipeline AjamSi inicializado")
 
@@ -244,6 +246,46 @@ class AjamSiPipeline:
         except Exception as e:
             logger.error(f"Error obteniendo estadísticas: {e}")
             return {}
+
+    def sincronizar_a_nube(self) -> dict:
+        """
+        Sincronizar archivos a Google Drive
+
+        Returns:
+            Diccionario con resumen de sincronización
+        """
+        try:
+            logger.info("\n☁️  Sincronizando a Google Drive...")
+
+            db_path = self.config.get("base_datos", {}).get("archivo", "data/ajamsi.db")
+            imagenes_path = "imagenes"
+            videos_path = "videos"
+
+            resultado = self.drive_sync.sincronizar_todo(
+                ruta_bd=db_path,
+                ruta_imagenes=imagenes_path,
+                ruta_videos=videos_path
+            )
+
+            resumen = {
+                "exitoso": resultado.exitoso,
+                "archivos_sincronizados": resultado.archivos_sincronizados,
+                "archivos_fallo": resultado.archivos_fallo,
+                "tamaño_bytes": resultado.tamaño_bytes,
+                "mensaje": resultado.mensaje,
+                "detalles": resultado.detalles
+            }
+
+            if resultado.exitoso:
+                logger.info(f"✓ Sincronización completada: {resultado.archivos_sincronizados} archivos")
+            else:
+                logger.warning(f"⚠ Sincronización con errores")
+
+            return resumen
+
+        except Exception as e:
+            logger.error(f"Error sincronizando: {e}", exc_info=True)
+            return {"exitoso": False, "mensaje": str(e)}
 
     def __repr__(self) -> str:
         return "<AjamSiPipeline: Scraper + Generator + Compiler + DB>"
