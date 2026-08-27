@@ -28,14 +28,20 @@ class AjamSiPipeline:
     4. Guarda todo en SQLite
     """
 
-    def __init__(self, config_path: str = "config/config.json"):
+    def __init__(self, config_path_or_dict):
         """
         Inicializar pipeline
 
         Args:
-            config_path: Ruta a config.json
+            config_path_or_dict: Ruta a config.json o diccionario de configuración
         """
-        self.config = ConfigLoader.cargar(config_path)
+        # Manejar tanto diccionario como ruta de archivo
+        if isinstance(config_path_or_dict, dict):
+            self.config = config_path_or_dict
+        else:
+            config_loader = ConfigLoader(config_path_or_dict)
+            self.config = config_loader.to_dict()
+
         self.db = DatabaseManager(self.config)
         self.scraper_manager = ScraperManager(self.config)
         self.generador_ideas = ClaudeIdeaGenerator(self.config)
