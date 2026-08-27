@@ -13,6 +13,10 @@ from .cronicas_lanzarote import CronicasLanzaroteScraper
 from .noticias_lanzarote import NoticiasLanzaroteScraper
 from .diario_lanzarote import DiarioLanzaroteScraper
 from .periodico_lanzarote import PeriodoLanzaroteScraper
+from .canarias7 import Canarias7Scraper
+from .canarias_ahora import CanariasAhoraScraper
+from .ecanarias import EcanariasScraper
+from .diario_avisos import DiarioAvisosScraper
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +47,10 @@ class ScraperManager:
             "Noticias de Lanzarote": NoticiasLanzaroteScraper,
             "Diario de Lanzarote": DiarioLanzaroteScraper,
             "El Periódico de Lanzarote": PeriodoLanzaroteScraper,
-            # Aquí irán más scrapers conforme los creemos
+            "Canarias7": Canarias7Scraper,
+            "Canarias Ahora": CanariasAhoraScraper,
+            "ecanarias.net": EcanariasScraper,
+            "Diario de Avisos": DiarioAvisosScraper,
         }
 
         # Instancias de scrapers
