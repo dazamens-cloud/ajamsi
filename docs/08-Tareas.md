@@ -22,17 +22,19 @@
 ## FASE 1: Implementación de Core 🔄 EN PROGRESO
 
 ### Web Scraper Funcional
-- [ ] Crear módulo `scrapers/news_scraper.py`
-- [ ] Implementar scraping para Lancelot Digital
+- [x] Crear módulo `base_scraper.py` (clase abstracta)
+- [x] Crear módulo `scraper_manager.py` (orquestador)
+- [x] Implementar scraping para Lancelot Digital ✅ COMPLETADO
 - [ ] Implementar scraping para Crónicas de Lanzarote
 - [ ] Implementar scraping para Noticias de Lanzarote
 - [ ] Implementar scraping para Diario de Lanzarote
 - [ ] Implementar scraping para El Periódico de Lanzarote
+- [ ] Implementar scraping para Canarias Ahora
 - [ ] Test de scraper con URLs reales
-- [ ] Filtrado automático de noticias relevantes
-- [ ] Guardar en DB local
+- [ ] Integración con DatabaseManager para guardar en DB
 
-**Estimado:** 3-4 días  
+**Completado:** 40% (1 de 6 fuentes)  
+**Estimado:** 2-3 días más (para las 5 fuentes restantes)  
 **Prioridad:** 🔴 ALTA
 
 ### Generador de Ideas

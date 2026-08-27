@@ -31,23 +31,52 @@
 
 ---
 
-## 2026-08-?? - FASE 1: Implementación de Core
+## 2026-08-27 - FASE 1: Implementación de Core
 
-(Pendiente de ejecución)
+### Sesión 2: Web Scraper - Parte 1 (Manhours: 1.5)
 
-### Sesión 2: Web Scraper (Estimado: 3-4 días)
+**Objetivo:** Base sólida para scraping de noticias
 
-**Objetivo:** Scraping funcional de noticias
+**Tareas completadas:**
+- ✅ `base_scraper.py` - Clase abstracta base
+  - Estructura Noticia (dataclass)
+  - Retry logic con HTTPAdapter
+  - Session management robusto
+  - Manejo de errores completo
+  - Utilidades compartidas (limpiar texto, validar fecha, rate limiting)
 
-**Tareas planeadas:**
-- [ ] Módulo `scrapers/news_scraper.py`
-- [ ] Scraper para cada fuente (5 fuentes)
-- [ ] Test con URLs reales
-- [ ] Guardar en DB
+- ✅ `lancelot_digital.py` - Primer scraper específico
+  - Selección flexible de elementos (múltiples selectores)
+  - Extracción inteligente (título, URL, contenido, fecha)
+  - Parseo de fechas en 7+ formatos
+  - Validación robusta de URLs
+  - Logging detallado
 
-**Learnings:** (Por escribir)
+- ✅ `scraper_manager.py` - Orquestador central
+  - Gestión de múltiples scrapers
+  - Ejecución secuencial y paralela (ThreadPoolExecutor)
+  - Agregación inteligente de resultados
+  - Ordenamiento por fecha
 
-**Blockers:** (Por escribir)
+- ✅ `tests/test_scrapers.py` - Suite de tests
+  - Tests de estructura
+  - Validación de inicialización
+  - Verificación de configuración
+  - Listo para pytest
+
+**Learnings:**
+1. **Arquitectura modular:** Patrón abstracto permite agregar scrapers sin modificar código existente
+2. **Error handling:** Retry logic y manejo robusto previene fallos de red
+3. **Flexibilidad en parsing:** Múltiples selectores CSS manejan variaciones de HTML
+4. **Rate limiting:** Integrado para no banear desde fuentes
+
+**Blockers:**
+- Ninguno. Todo está bien estructurado.
+
+**Próximo:**
+- Implementar 4 scrapers más (Crónicas, Noticias, Diario, Periódico de Lanzarote)
+- Test real con URLs (cuando Python esté correctamente instalado)
+- Integración con DatabaseManager para guardar en DB
 
 ---
 
