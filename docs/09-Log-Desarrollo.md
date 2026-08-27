@@ -78,17 +78,46 @@
 - Test real con URLs (cuando Python esté correctamente instalado)
 - Integración con DatabaseManager para guardar en DB
 
+### Sesión 3: Web Scraper - Parte 2 (Manhours: 1)
+
+**Objetivo:** Segundo scraper (Crónicas de Lanzarote)
+
+**Tareas completadas:**
+- ✅ `cronicas_lanzarote.py` - Segundo scraper específico
+  - Adaptación de estructura base
+  - Selectores CSS flexible (7+ opciones)
+  - Reutilización de código eficiente
+  - Tests específicos agregados
+
+- ✅ ScraperManager actualizado
+  - Integración del nuevo scraper
+  - Mapeo automático de fuentes
+
+- ✅ Tests extendidos
+  - Función genérica para tests
+  - Test para Crónicas de Lanzarote
+
+**Learnings:**
+1. **Velocidad de desarrollo:** Patrón abstracto permite ~10-15 min por scraper
+2. **Modularidad:** Mínimos cambios para agregar nuevos scrapers
+3. **Reutilización:** 80% del código base se reutiliza
+
+**Blockers:** Ninguno
+
+**Próximo:** Implementar 7 scrapers más (velocidad acelerada)
+
 ---
 
 ## Estadísticas Generales
 
 | Métrica | Valor |
 |---------|-------|
-| Sesiones completadas | 1 |
-| Horas invertidas | ~2 |
-| Líneas de código | ~500 |
-| Archivos creados | 20+ |
-| Commits | 1 |
+| Sesiones completadas | 3 |
+| Horas invertidas | ~4 |
+| Líneas de código | ~2,200+ |
+| Archivos creados | 27 |
+| Commits | 6 |
+| Scrapers completados | 2/9 (22%) |
 | Bugs encontrados | 0 |
 
 ---

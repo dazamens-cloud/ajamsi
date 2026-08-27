@@ -25,7 +25,7 @@
 - [x] Crear módulo `base_scraper.py` (clase abstracta)
 - [x] Crear módulo `scraper_manager.py` (orquestador)
 - [x] Implementar scraping para Lancelot Digital ✅ COMPLETADO
-- [ ] Implementar scraping para Crónicas de Lanzarote
+- [x] Implementar scraping para Crónicas de Lanzarote ✅ COMPLETADO
 - [ ] Implementar scraping para Noticias de Lanzarote
 - [ ] Implementar scraping para Diario de Lanzarote
 - [ ] Implementar scraping para El Periódico de Lanzarote
@@ -36,8 +36,8 @@
 - [ ] Test de scraper con URLs reales
 - [ ] Integración con DatabaseManager para guardar en DB
 
-**Completado:** 11% (1 de 9 fuentes)  
-**Estimado:** 3-4 días más (para las 8 fuentes restantes)  
+**Completado:** 22% (2 de 9 fuentes)  
+**Estimado:** 1-2 horas más (para las 7 fuentes restantes)  
 **Prioridad:** 🔴 ALTA
 
 **Estado Facebook/Twitter:** ❌ DESCARTADOS (visto riesgo/complejidad)
