@@ -11,24 +11,29 @@ echo   Sistema de TikTok Canario
 echo ========================================
 echo.
 
-REM Verificar Python
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo ❌ Error: Python no está instalado
+REM Usar ruta completa de Python
+set PYTHON_PATH=C:\Users\andre\AppData\Local\Programs\Python\Python312\python.exe
+
+REM Verificar Python existe
+if not exist "%PYTHON_PATH%" (
+    echo ❌ Error: Python no encontrado en %PYTHON_PATH%
     echo.
-    echo Por favor instala Python desde python.org
+    echo Intenta:
+    echo   1. Verificar Python instalado: where python
+    echo   2. Actualizar lanzar.bat con ruta correcta
+    echo.
     pause
     exit /b 1
 )
 
-echo ✓ Python detectado
+echo ✓ Python encontrado: %PYTHON_PATH%
 echo.
 
 REM Ejecutar pipeline
-echo 🚀 Iniciando pipeline...
+echo 🚀 Iniciando pipeline AjamSi...
 echo.
 
-python main.py
+"%PYTHON_PATH%" main.py
 
 echo.
 echo ========================================

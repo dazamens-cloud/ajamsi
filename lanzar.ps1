@@ -10,24 +10,28 @@ Write-Host ""
 # Cambiar a directorio del proyecto
 Set-Location $PSScriptRoot
 
-# Verificar Python
-try {
-    python --version 2>$null | Out-Null
-    Write-Host "✓ Python detectado" -ForegroundColor Green
-} catch {
-    Write-Host "❌ Error: Python no está instalado" -ForegroundColor Red
+# Ruta completa de Python
+$pythonPath = "C:\Users\andre\AppData\Local\Programs\Python\Python312\python.exe"
+
+# Verificar Python existe
+if (-not (Test-Path $pythonPath)) {
+    Write-Host "❌ Error: Python no encontrado en $pythonPath" -ForegroundColor Red
     Write-Host ""
-    Write-Host "Por favor instala Python desde python.org" -ForegroundColor Yellow
+    Write-Host "Intenta:" -ForegroundColor Yellow
+    Write-Host "  1. Verificar Python: where python" -ForegroundColor White
+    Write-Host "  2. Actualizar lanzar.ps1 con ruta correcta" -ForegroundColor White
+    Write-Host ""
     Read-Host "Presiona Enter para salir"
     exit 1
 }
 
+Write-Host "✓ Python encontrado: $pythonPath" -ForegroundColor Green
 Write-Host ""
-Write-Host "🚀 Iniciando pipeline..." -ForegroundColor Green
+Write-Host "🚀 Iniciando pipeline AjamSi..." -ForegroundColor Green
 Write-Host ""
 
 # Ejecutar pipeline
-python main.py
+& $pythonPath main.py
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
