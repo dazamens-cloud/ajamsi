@@ -9,7 +9,7 @@ from pathlib import Path
 from src.utils.config_loader import ConfigLoader
 from src.utils.db import DatabaseManager
 from src.scrapers import ScraperManager, Noticia
-from src.generators import ClaudeIdeaGenerator, Idea
+from src.generators import ClaudeIdeaGenerator, OllamaIdeaGenerator, Idea
 from src.processors import FFmpegVideoCompiler, Video
 from src.sync import GoogleDriveSync
 from src.feedback import PreferenceFeedbackSystem, TipoFeedback
@@ -45,7 +45,16 @@ class AjamSiPipeline:
 
         self.db = DatabaseManager(self.config)
         self.scraper_manager = ScraperManager(self.config)
-        self.generador_ideas = ClaudeIdeaGenerator(self.config)
+
+        # Seleccionar generador de ideas según configuración
+        proveedor = self.config.get("generador_ideas", {}).get("proveedor", "claude")
+        if proveedor == "ollama":
+            self.generador_ideas = OllamaIdeaGenerator(self.config)
+            logger.info("✓ Usando OllamaIdeaGenerator (Qwen local)")
+        else:
+            self.generador_ideas = ClaudeIdeaGenerator(self.config)
+            logger.info("✓ Usando ClaudeIdeaGenerator")
+
         self.compilador_videos = FFmpegVideoCompiler(self.config)
         self.drive_sync = GoogleDriveSync(self.config)
         self.feedback_system = PreferenceFeedbackSystem(self.config)

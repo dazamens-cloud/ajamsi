@@ -67,11 +67,13 @@
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
   },
   "generador_ideas": {
-    "modelo": "claude-3-5-sonnet",
+    "proveedor": "ollama",
+    "modelo": "qwen:latest",
     "temperatura": 0.7,
     "max_tokens": 500,
     "idioma": "es",
-    "tono": "humor_sardónico_canario"
+    "tono": "humor_sardónico_canario",
+    "ollama_url": "http://localhost:11434"
   },
   "generador_imagenes": {
     "proveedor": "gemini",
