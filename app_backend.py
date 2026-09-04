@@ -222,21 +222,27 @@ def get_state():
 
 @app.route('/api/healthcheck', methods=['GET'])
 def healthcheck():
-    """Verificar que todos los requisitos estén disponibles"""
+    """Verificar que todos los requisitos estén disponibles y auto-reparar"""
     health_agent = HealthCheckAgent()
-    resultado = health_agent.verificar_todo()
+    resultado = health_agent.verificar_todo(auto_repair=True)
 
     if resultado['todo_ok']:
+        mensaje = '✅ Sistema listo'
+        if resultado.get('reparaciones'):
+            mensaje += f" (Reparados: {', '.join(resultado['reparaciones'])})"
+
         return jsonify({
             'status': 'ok',
-            'mensaje': '✅ Sistema listo',
-            'resultados': resultado['resultados']
+            'mensaje': mensaje,
+            'resultados': resultado['resultados'],
+            'reparaciones': resultado.get('reparaciones', [])
         })
     else:
         return jsonify({
             'status': 'error',
-            'mensaje': '❌ Faltan requisitos',
-            'resultados': resultado['resultados']
+            'mensaje': '❌ Faltan requisitos - intenta reparar o instala manualmente',
+            'resultados': resultado['resultados'],
+            'reparaciones': resultado.get('reparaciones', [])
         }), 400
 
 @app.route('/api/reset', methods=['POST'])

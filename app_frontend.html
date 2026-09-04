@@ -52,6 +52,16 @@ async function verificarSistema() {
     html += `<div class="resultado" style="border-left: 4px solid ${response.ok ? '#51cf66' : '#ff6b6b'};">`;
     html += `<strong>${data.mensaje}</strong><br/><br/>`;
 
+    // Mostrar reparaciones realizadas
+    if (data.reparaciones && data.reparaciones.length > 0) {
+      html += `<div style="margin-bottom: 1rem; padding: 0.5rem; background: rgba(81, 207, 102, 0.2); border-radius: 4px;">`;
+      html += `🔧 <strong>Reparaciones realizadas:</strong><br/>`;
+      data.reparaciones.forEach(rep => {
+        html += `✅ ${rep}<br/>`;
+      });
+      html += `</div>`;
+    }
+
     if (data.resultados) {
       for (const [nombre, resultado] of Object.entries(data.resultados)) {
         const icon = resultado.status ? '✅' : '❌';
