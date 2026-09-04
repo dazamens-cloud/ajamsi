@@ -246,6 +246,31 @@ def phase1_select():
         'mensaje': f'{len(indices)} noticias seleccionadas'
     })
 
+@app.route('/api/phase2-get-results', methods=['GET'])
+def phase2_get_results():
+    """Obtener ideas de Fase 2 para revisión/corrección"""
+    return jsonify({
+        'ideas': state['ideas'],
+        'prompts': state['prompts'],
+        'corregidas': state['ideas_seleccionadas'],
+        'total_ideas': len(state['ideas']),
+        'total_prompts': len(state['prompts'])
+    })
+
+@app.route('/api/phase2-correct', methods=['POST'])
+def phase2_correct():
+    """Guardar ideas y prompts corregidos"""
+    data = request.json
+    ideas_corregidas = data.get('ideas', [])
+
+    state['ideas_seleccionadas'] = ideas_corregidas
+
+    return jsonify({
+        'status': 'success',
+        'ideas_guardadas': len(ideas_corregidas),
+        'mensaje': f'{len(ideas_corregidas)} ideas guardadas'
+    })
+
 @app.route('/api/state', methods=['GET'])
 def get_state():
     """Obtener estado actual del sistema"""

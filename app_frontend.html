@@ -29,6 +29,10 @@ h3 { color: #00d4ff; margin-top: 1.5rem; margin-bottom: 0.5rem; }
 .noticia-fuente { font-size: 0.85rem; color: #888; }
 .btn-continuar { background: #51cf66; margin-top: 1rem; }
 .btn-continuar:hover { background: #3db84f; }
+.idea-card { background: #2a2a3e; border: 2px solid #7c3aed; padding: 1rem; margin: 0.8rem 0; border-radius: 8px; }
+.idea-card textarea { width: 100%; min-height: 100px; background: #1e1e2e; color: #e0e0e0; border: 1px solid #7c3aed; padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.9rem; margin-top: 0.5rem; }
+.idea-meta { font-size: 0.85rem; color: #888; margin: 0.5rem 0; }
+.idea-label { color: #00d4ff; font-weight: bold; margin-bottom: 0.5rem; }
 </style>
 </head>
 <body>
@@ -167,9 +171,58 @@ async function guardarSeleccionNoticias() {
 
     const data = await response.json();
     alert('✅ ' + data.mensaje);
-    // Aquí continuaremos con Fase 2 automáticamente
   } catch (error) {
     console.error('Error guardando selección:', error);
+    alert('Error: ' + error.message);
+  }
+}
+
+async function mostrarEditorIdeas() {
+  try {
+    const response = await fetch(API + '/phase2-get-results');
+    const data = await response.json();
+
+    let html = '<h3>💡 Revisa y Corrige las Ideas (Total: ' + data.total_ideas + ')</h3>';
+    html += '<p style="color: #888; font-size: 0.9rem;">Puedes editar cada idea si es necesario</p>';
+
+    data.ideas.forEach((idea, i) => {
+      const concepto = idea.concepto || idea.titulo || 'Sin concepto';
+      const descripcion = idea.descripcion || idea.text || '';
+      html += `<div class="idea-card">
+        <div class="idea-label">💭 Idea ${i + 1}</div>
+        <div class="idea-meta">Ángulo: ${idea.angulo_humor || 'N/A'} | Relevancia: ${idea.relevancia || 'N/A'}</div>
+        <textarea id="idea-${i}" placeholder="Concepto de idea...">${concepto}</textarea>
+        <div style="font-size: 0.85rem; color: #aaa; margin-top: 0.5rem;">Descripción: ${descripcion.substring(0, 150)}</div>
+      </div>`;
+    });
+
+    html += '<button class="btn-continuar" onclick="guardarIdeasCorregidas()">✅ Continuar a Fase 3</button>';
+
+    document.getElementById('content').innerHTML = html;
+  } catch (error) {
+    console.error('Error mostrando ideas:', error);
+  }
+}
+
+async function guardarIdeasCorregidas() {
+  try {
+    const textareas = document.querySelectorAll('.idea-card textarea');
+    const ideas = Array.from(textareas).map((ta, i) => ({
+      id: i,
+      concepto: ta.value,
+      editado: true
+    }));
+
+    const response = await fetch(API + '/phase2-correct', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ideas })
+    });
+
+    const data = await response.json();
+    alert('✅ ' + data.mensaje);
+  } catch (error) {
+    console.error('Error guardando ideas:', error);
     alert('Error: ' + error.message);
   }
 }
@@ -187,6 +240,7 @@ function render(state) {
   phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase1\', \'POST\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>1️⃣ Fase 1: Scraping</button></div>';
   phasesHtml += '<div class="card"><button onclick="mostrarSelectorNoticias()" ' + (state.status === 'loading' ? 'disabled' : '') + '>📋 Seleccionar Noticias</button></div>';
   phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase2\', \'POST\', {noticia_idx:0})" ' + (state.status === 'loading' ? 'disabled' : '') + '>2️⃣ Fase 2: Ideas</button></div>';
+  phasesHtml += '<div class="card"><button onclick="mostrarEditorIdeas()" ' + (state.status === 'loading' ? 'disabled' : '') + '>📝 Revisar Ideas</button></div>';
   phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase3\', \'POST\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>3️⃣ Fase 3: Captions</button></div>';
   phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase4\', \'POST\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>4️⃣ Fase 4: Video</button></div>';
   document.getElementById('phases').innerHTML = phasesHtml;
