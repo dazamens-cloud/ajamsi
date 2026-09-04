@@ -20,6 +20,15 @@ button.loading { background: #5a2aad; opacity: 0.7; cursor: wait; }
 .error { border-left-color: #ff6b6b; }
 h3 { color: #00d4ff; margin-top: 1.5rem; margin-bottom: 0.5rem; }
 .noticia-item { background: #2a2a3e; padding: 0.8rem; margin: 0.3rem 0; border-left: 3px solid #7c3aed; border-radius: 3px; }
+.noticia-checkbox { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem; background: #2a2a3e; margin: 0.5rem 0; border-radius: 4px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+.noticia-checkbox:hover { border-color: #00d4ff; }
+.noticia-checkbox input { width: 20px; height: 20px; cursor: pointer; }
+.noticia-checkbox.selected { background: #1a3a3a; border-color: #51cf66; }
+.noticia-info { flex: 1; }
+.noticia-titulo { font-weight: bold; color: #00d4ff; }
+.noticia-fuente { font-size: 0.85rem; color: #888; }
+.btn-continuar { background: #51cf66; margin-top: 1rem; }
+.btn-continuar:hover { background: #3db84f; }
 </style>
 </head>
 <body>
@@ -100,6 +109,71 @@ async function executePhase(endpoint, method = 'POST', body = null) {
   }
 }
 
+async function mostrarSelectorNoticias() {
+  try {
+    const response = await fetch(API + '/phase1-get-results');
+    const data = await response.json();
+
+    let html = '<h3>📰 Selecciona Noticias (Total: ' + data.total + ')</h3>';
+    html += '<p style="color: #888; font-size: 0.9rem;">Marca las noticias que quieres usar para Fase 2</p>';
+
+    data.noticias.forEach((n, i) => {
+      const checked = data.seleccionadas.includes(i) ? 'checked' : '';
+      const selectedClass = data.seleccionadas.includes(i) ? 'selected' : '';
+      html += `<label class="noticia-checkbox ${selectedClass}">
+        <input type="checkbox" id="noticia-${i}" ${checked} onchange="actualizarSeleccion()">
+        <div class="noticia-info">
+          <div class="noticia-titulo">${n.titulo.substring(0, 100)}</div>
+          <div class="noticia-fuente">📌 ${n.fuente}</div>
+        </div>
+      </label>`;
+    });
+
+    html += '<button class="btn-continuar" onclick="guardarSeleccionNoticias()">✅ Continuar a Fase 2</button>';
+
+    document.getElementById('content').innerHTML = html;
+  } catch (error) {
+    console.error('Error mostrando selector:', error);
+  }
+}
+
+function actualizarSeleccion() {
+  const checkboxes = document.querySelectorAll('.noticia-checkbox input');
+  checkboxes.forEach((cb, i) => {
+    const label = cb.closest('.noticia-checkbox');
+    if (cb.checked) {
+      label.classList.add('selected');
+    } else {
+      label.classList.remove('selected');
+    }
+  });
+}
+
+async function guardarSeleccionNoticias() {
+  try {
+    const checkboxes = document.querySelectorAll('.noticia-checkbox input:checked');
+    const indices = Array.from(checkboxes).map(cb => parseInt(cb.id.split('-')[1]));
+
+    if (indices.length === 0) {
+      alert('Selecciona al menos una noticia');
+      return;
+    }
+
+    const response = await fetch(API + '/phase1-select', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ indices })
+    });
+
+    const data = await response.json();
+    alert('✅ ' + data.mensaje);
+    // Aquí continuaremos con Fase 2 automáticamente
+  } catch (error) {
+    console.error('Error guardando selección:', error);
+    alert('Error: ' + error.message);
+  }
+}
+
 function render(state) {
   // Estado
   const statusEl = document.getElementById('status');
@@ -111,6 +185,7 @@ function render(state) {
   let phasesHtml = '';
   phasesHtml += '<div class="card"><button onclick="executePhase(\'/init\', \'GET\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>⚙️ Inicializar</button></div>';
   phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase1\', \'POST\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>1️⃣ Fase 1: Scraping</button></div>';
+  phasesHtml += '<div class="card"><button onclick="mostrarSelectorNoticias()" ' + (state.status === 'loading' ? 'disabled' : '') + '>📋 Seleccionar Noticias</button></div>';
   phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase2\', \'POST\', {noticia_idx:0})" ' + (state.status === 'loading' ? 'disabled' : '') + '>2️⃣ Fase 2: Ideas</button></div>';
   phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase3\', \'POST\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>3️⃣ Fase 3: Captions</button></div>';
   phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase4\', \'POST\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>4️⃣ Fase 4: Video</button></div>';
@@ -119,7 +194,7 @@ function render(state) {
   // Contenido
   let html = '';
 
-  if (state.noticias && state.noticias.length > 0) {
+  if (state.noticias && state.noticias.length > 0 && state.current_phase === 1) {
     html += '<h3>📰 Noticias (' + state.noticias.length + ')</h3>';
     state.noticias.forEach((n, i) => {
       html += '<div class="noticia-item">' + (n.fuente || 'Noticia') + '<br/><strong>' + (n.titulo ? n.titulo.substring(0, 80) : 'Sin título') + '</strong></div>';

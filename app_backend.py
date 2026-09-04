@@ -25,10 +25,13 @@ state = {
     'status': 'idle',  # idle, loading, ready
     'current_phase': 0,  # 0: init, 1: scraping, 2: ideas, 3: captions, 4: video
     'noticias': [],
+    'noticias_indices_seleccionadas': [],  # Índices de noticias seleccionadas
     'noticia_seleccionada': None,
     'ideas': [],
+    'ideas_seleccionadas': [],  # Ideas seleccionadas/corregidas
     'prompts': [],
     'captions': [],
+    'captions_seleccionados': [],  # Captions seleccionados/corregidos
     'video': None,
     'error': None,
     'timestamp': None,
@@ -213,6 +216,34 @@ def phase4_video():
     return jsonify({
         'status': 'loading',
         'message': 'Compilando video...'
+    })
+
+@app.route('/api/phase1-get-results', methods=['GET'])
+def phase1_get_results():
+    """Obtener noticias de Fase 1 para selección"""
+    return jsonify({
+        'noticias': state['noticias'],
+        'seleccionadas': state['noticias_indices_seleccionadas'],
+        'total': len(state['noticias'])
+    })
+
+@app.route('/api/phase1-select', methods=['POST'])
+def phase1_select():
+    """Guardar selección de noticias"""
+    data = request.json
+    indices = data.get('indices', [])
+
+    # Validar indices
+    if not all(isinstance(i, int) and 0 <= i < len(state['noticias']) for i in indices):
+        return jsonify({'status': 'error', 'error': 'Índices inválidos'}), 400
+
+    state['noticias_indices_seleccionadas'] = indices
+    state['noticia_seleccionada'] = state['noticias'][indices[0]] if indices else None
+
+    return jsonify({
+        'status': 'success',
+        'noticias_seleccionadas': len(indices),
+        'mensaje': f'{len(indices)} noticias seleccionadas'
     })
 
 @app.route('/api/state', methods=['GET'])
