@@ -324,6 +324,30 @@ def healthcheck():
             'reparaciones': resultado.get('reparaciones', [])
         }), 400
 
+@app.route('/api/workflow-next', methods=['POST'])
+def workflow_next():
+    """Avanzar a la siguiente fase en el workflow"""
+    data = request.json
+    current_phase = data.get('current_phase', 0)
+
+    # Mapeo de fases: qué hacer para avanzar a la siguiente
+    next_actions = {
+        0: ('Inicializar', '/api/init'),
+        1: ('Seleccionar Noticias', 'fase1-select'),
+        2: ('Ejecutar Fase 2', '/api/phase2'),
+        2.5: ('Revisar Ideas', 'fase2-correct'),
+        3: ('Ejecutar Fase 3', '/api/phase3'),
+        3.5: ('Revisar Captions', 'fase3-correct'),
+        4: ('Ejecutar Fase 4', '/api/phase4'),
+    }
+
+    return jsonify({
+        'status': 'ok',
+        'current_phase': current_phase,
+        'next_phase': current_phase + 1,
+        'message': f'Listo para siguiente fase'
+    })
+
 @app.route('/api/reset', methods=['POST'])
 def reset():
     """Reset del sistema"""
@@ -332,10 +356,13 @@ def reset():
         'status': 'idle',
         'current_phase': 0,
         'noticias': [],
+        'noticias_indices_seleccionadas': [],
         'noticia_seleccionada': None,
         'ideas': [],
+        'ideas_seleccionadas': [],
         'prompts': [],
         'captions': [],
+        'captions_seleccionados': [],
         'video': None,
         'error': None,
         'timestamp': None,

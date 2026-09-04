@@ -52,6 +52,11 @@ h3 { color: #00d4ff; margin-top: 1.5rem; margin-bottom: 0.5rem; }
 
 <div id="healthcheck-result"></div>
 
+<h3>📊 Progreso del Pipeline</h3>
+<div id="progress" style="background: #222; border: 2px solid #7c3aed; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+  <div id="progress-bar"></div>
+</div>
+
 <h3>Fases</h3>
 <div class="phase-container" id="phases"></div>
 
@@ -296,6 +301,29 @@ function render(state) {
   const statusClass = state.status === 'loading' ? 'loading' : state.status === 'error' ? 'error' : 'ready';
   statusEl.textContent = `Estado: ${state.status.toUpperCase()} | Fase: ${state.current_phase}${state.error ? ' | Error: ' + state.error : ''}`;
   statusEl.className = 'status ' + statusClass;
+
+  // Progreso del pipeline
+  const phases = [
+    { num: 0, name: 'Verificación', icon: '🔍', done: state.current_phase >= 0 },
+    { num: 1, name: 'Noticias', icon: '📰', done: state.current_phase >= 1 && state.noticias.length > 0 },
+    { num: 1.5, name: 'Selección', icon: '📋', done: state.noticias_indices_seleccionadas.length > 0 },
+    { num: 2, name: 'Ideas', icon: '💡', done: state.current_phase >= 2 && state.ideas.length > 0 },
+    { num: 2.5, name: 'Revisión Ideas', icon: '📝', done: state.ideas_seleccionadas.length > 0 },
+    { num: 3, name: 'Captions', icon: '✍️', done: state.current_phase >= 3 && state.captions.length > 0 },
+    { num: 3.5, name: 'Revisión Captions', icon: '✍️', done: state.captions_seleccionados.length > 0 },
+    { num: 4, name: 'Video', icon: '🎬', done: state.video !== null }
+  ];
+
+  let progressHtml = '<div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: space-between;">';
+  phases.forEach(phase => {
+    const bg = phase.done ? '#51cf66' : '#5a2aad';
+    const color = phase.done ? '#000' : '#ccc';
+    progressHtml += `<div style="background: ${bg}; color: ${color}; padding: 0.5rem 0.8rem; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">
+      ${phase.icon} ${phase.name}
+    </div>`;
+  });
+  progressHtml += '</div>';
+  document.getElementById('progress-bar').innerHTML = progressHtml;
 
   // Botones de fases
   let phasesHtml = '';
