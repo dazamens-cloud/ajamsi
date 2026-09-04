@@ -33,6 +33,11 @@ h3 { color: #00d4ff; margin-top: 1.5rem; margin-bottom: 0.5rem; }
 .idea-card textarea { width: 100%; min-height: 100px; background: #1e1e2e; color: #e0e0e0; border: 1px solid #7c3aed; padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.9rem; margin-top: 0.5rem; }
 .idea-meta { font-size: 0.85rem; color: #888; margin: 0.5rem 0; }
 .idea-label { color: #00d4ff; font-weight: bold; margin-bottom: 0.5rem; }
+.caption-card { background: #2a2a3e; border: 2px solid #51cf66; padding: 1rem; margin: 0.8rem 0; border-radius: 8px; }
+.caption-card textarea { width: 100%; min-height: 60px; background: #1e1e2e; color: #e0e0e0; border: 1px solid #51cf66; padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.9rem; margin-top: 0.5rem; }
+.caption-meta { font-size: 0.85rem; color: #888; margin: 0.5rem 0; }
+.caption-label { color: #51cf66; font-weight: bold; margin-bottom: 0.5rem; }
+.engagement-score { display: inline-block; background: #7c3aed; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.85rem; margin-left: 0.5rem; }
 </style>
 </head>
 <body>
@@ -227,6 +232,64 @@ async function guardarIdeasCorregidas() {
   }
 }
 
+async function mostrarEditorCaptions() {
+  try {
+    const response = await fetch(API + '/phase3-get-results');
+    const data = await response.json();
+
+    let html = '<h3>✍️ Revisa y Corrige los Captions (Total: ' + data.total_captions + ')</h3>';
+    html += '<p style="color: #888; font-size: 0.9rem;">Puedes editar cada caption y sus hashtags</p>';
+
+    data.captions.forEach((caption, i) => {
+      const texto = caption.caption || caption.text || 'Sin caption';
+      const hashtags = caption.hashtags || '#canarias';
+      const engagement = caption.engagement_score || 0;
+      const tipo = caption.tipo || 'N/A';
+
+      html += `<div class="caption-card">
+        <div class="caption-label">
+          📝 Caption ${i + 1}
+          <span class="engagement-score">💯 ${(engagement * 100).toFixed(0)}%</span>
+        </div>
+        <div class="caption-meta">Tipo: ${tipo}</div>
+        <textarea id="caption-${i}" placeholder="Texto del caption...">${texto}</textarea>
+        <div style="font-size: 0.85rem; margin-top: 0.5rem;">
+          <strong>Hashtags:</strong> ${hashtags}
+        </div>
+      </div>`;
+    });
+
+    html += '<button class="btn-continuar" onclick="guardarCaptionsCorregidos()">✅ Continuar a Fase 4 (Video)</button>';
+
+    document.getElementById('content').innerHTML = html;
+  } catch (error) {
+    console.error('Error mostrando captions:', error);
+  }
+}
+
+async function guardarCaptionsCorregidos() {
+  try {
+    const textareas = document.querySelectorAll('.caption-card textarea');
+    const captions = Array.from(textareas).map((ta, i) => ({
+      id: i,
+      caption: ta.value,
+      editado: true
+    }));
+
+    const response = await fetch(API + '/phase3-correct', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ captions })
+    });
+
+    const data = await response.json();
+    alert('✅ ' + data.mensaje);
+  } catch (error) {
+    console.error('Error guardando captions:', error);
+    alert('Error: ' + error.message);
+  }
+}
+
 function render(state) {
   // Estado
   const statusEl = document.getElementById('status');
@@ -242,6 +305,7 @@ function render(state) {
   phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase2\', \'POST\', {noticia_idx:0})" ' + (state.status === 'loading' ? 'disabled' : '') + '>2️⃣ Fase 2: Ideas</button></div>';
   phasesHtml += '<div class="card"><button onclick="mostrarEditorIdeas()" ' + (state.status === 'loading' ? 'disabled' : '') + '>📝 Revisar Ideas</button></div>';
   phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase3\', \'POST\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>3️⃣ Fase 3: Captions</button></div>';
+  phasesHtml += '<div class="card"><button onclick="mostrarEditorCaptions()" ' + (state.status === 'loading' ? 'disabled' : '') + '>✍️ Revisar Captions</button></div>';
   phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase4\', \'POST\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>4️⃣ Fase 4: Video</button></div>';
   document.getElementById('phases').innerHTML = phasesHtml;
 

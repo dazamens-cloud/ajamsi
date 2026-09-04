@@ -271,6 +271,29 @@ def phase2_correct():
         'mensaje': f'{len(ideas_corregidas)} ideas guardadas'
     })
 
+@app.route('/api/phase3-get-results', methods=['GET'])
+def phase3_get_results():
+    """Obtener captions de Fase 3 para revisión/corrección"""
+    return jsonify({
+        'captions': state['captions'],
+        'corregidos': state['captions_seleccionados'],
+        'total_captions': len(state['captions'])
+    })
+
+@app.route('/api/phase3-correct', methods=['POST'])
+def phase3_correct():
+    """Guardar captions corregidos"""
+    data = request.json
+    captions_corregidos = data.get('captions', [])
+
+    state['captions_seleccionados'] = captions_corregidos
+
+    return jsonify({
+        'status': 'success',
+        'captions_guardados': len(captions_corregidos),
+        'mensaje': f'{len(captions_corregidos)} captions guardados'
+    })
+
 @app.route('/api/state', methods=['GET'])
 def get_state():
     """Obtener estado actual del sistema"""
