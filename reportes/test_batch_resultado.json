@@ -1,0 +1,81 @@
+{
+  "nombre": "test_demo_2026",
+  "inicio": "2026-08-30T03:15:03.777901",
+  "fases": {
+    "scraping": {
+      "status": "success",
+      "noticias_encontradas": 0,
+      "noticias": [],
+      "timestamp": "2026-08-30T03:15:03.777954"
+    },
+    "ideas": {
+      "ideas": []
+    },
+    "prompts": {
+      "prompts": []
+    },
+    "captions": {
+      "captions": []
+    },
+    "videos": {
+      "status": "pending",
+      "nota": "Requiere imágenes de Gemini para compilar videos reales",
+      "videos_prontos": 5
+    },
+    "validacion": {
+      "status": "success",
+      "todo_ok": true,
+      "validaciones": {
+        "ortografia": {
+          "ok": true,
+          "errores": 0,
+          "alerta": null
+        },
+        "duracion": {
+          "ok": true,
+          "duracion": 30,
+          "alerta": null
+        },
+        "coherencia": {
+          "ok": true,
+          "alerta": null
+        },
+        "contenido_sensible": {
+          "ok": true,
+          "palabras_sensibles": [],
+          "alerta": null
+        },
+        "calidad_imagen": {
+          "ok": true,
+          "alerta": null
+        }
+      },
+      "alertas": [],
+      "puntuacion_calidad": 100.0,
+      "recomendacion": "LISTO PARA PUBLICAR",
+      "timestamp": "2026-08-30T03:15:03.778055"
+    },
+    "sync": {
+      "status": "success",
+      "fecha_sync": "2026-08-30T03:15:03.778221",
+      "archivos_procesados": 0,
+      "archivos_sincronizados": 0,
+      "tamaño_bytes": 0,
+      "tamaño_mb": 0.0,
+      "carpetas_creadas": 4,
+      "backup_db": true,
+      "estado": "sincronizado",
+      "proxima_sync": "2026-08-30T03:15:03.778231"
+    }
+  },
+  "estadisticas": {
+    "noticias_procesadas": 0,
+    "ideas_generadas": 0,
+    "prompts_generados": 0,
+    "captions_generados": 0,
+    "videos_prontos": 5
+  },
+  "errores": [],
+  "status": "success",
+  "fin": "2026-08-30T03:15:03.778269"
+}

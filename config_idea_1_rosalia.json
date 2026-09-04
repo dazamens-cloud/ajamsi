@@ -1,0 +1,18 @@
+{
+  "titulo": "Reacción Sorprendida",
+  "duracion_segundos": 15,
+  "resolucion": "1080x1920",
+  "fps": 30,
+  "colores": [
+    "#FFD700",
+    "#FF6347",
+    "#FFFFFF"
+  ],
+  "elementos": [
+    "Bandera de Canarias",
+    "Playa de Lanzarote",
+    "Mar turquesa"
+  ],
+  "personaje": "El Típico Canario",
+  "estilo": "canario_moderno"
+}

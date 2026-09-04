@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AJAMSI</title>
+<style>
+body { background: #1e1e2e; color: #e0e0e0; font-family: Arial; padding: 2rem; margin: 0; }
+h1 { color: #00d4ff; margin: 0; }
+.status { color: #888; font-size: 0.9rem; margin: 0.5rem 0 2rem 0; }
+.status.loading { color: #00d4ff; }
+.status.error { color: #ff6b6b; }
+.status.ready { color: #51cf66; }
+.phase-container { display: grid; grid-template-columns: 1fr; gap: 0.8rem; margin: 1rem 0; }
+.card { background: #222; border: 2px solid #7c3aed; padding: 1rem; border-radius: 8px; }
+button { background: #7c3aed; color: white; padding: 0.7rem 1.5rem; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 1rem; transition: all 0.2s; }
+button:hover { background: #00d4ff; transform: translateY(-2px); }
+button:active { transform: translateY(0); }
+button.loading { background: #5a2aad; opacity: 0.7; cursor: wait; }
+.resultado { background: #2a2a3e; border-left: 4px solid #00d4ff; padding: 0.8rem; margin: 0.5rem 0; border-radius: 4px; }
+.error { border-left-color: #ff6b6b; }
+h3 { color: #00d4ff; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+.noticia-item { background: #2a2a3e; padding: 0.8rem; margin: 0.3rem 0; border-left: 3px solid #7c3aed; border-radius: 3px; }
+</style>
+</head>
+<body>
+<h1>🚀 AJAMSI Control Panel - HTML NUEVO FUNCIONA!</h1>
+<p>Pipeline de generación de contenido automático - ACTUALIZADO</p>
+<div class="status" id="status"></div>
+
+<h3>⚙️ Control</h3>
+<div class="phase-container">
+  <div class="card"><button onclick="verificarSistema()" style="background: #ff9800;">🔍 Verificar Sistema</button></div>
+</div>
+
+<div id="healthcheck-result"></div>
+
+<h3>Fases</h3>
+<div class="phase-container" id="phases"></div>
+
+<div id="content"></div>
+
+<script>
+const API = 'http://localhost:5000/api';
+let currentPhaseButton = null;
+
+async function verificarSistema() {
+  try {
+    const response = await fetch(API + '/healthcheck');
+    const data = await response.json();
+
+    let html = '<div style="margin: 1.5rem 0;">';
+    html += `<div class="resultado" style="border-left: 4px solid ${response.ok ? '#51cf66' : '#ff6b6b'};">`;
+    html += `<strong>${data.mensaje}</strong><br/><br/>`;
+
+    if (data.resultados) {
+      for (const [nombre, resultado] of Object.entries(data.resultados)) {
+        const icon = resultado.status ? '✅' : '❌';
+        html += `<div style="margin-bottom: 0.5rem;">${icon} <strong>${nombre}</strong>: ${resultado.mensaje}</div>`;
+      }
+    }
+
+    html += '</div></div>';
+    document.getElementById('healthcheck-result').innerHTML = html;
+  } catch (error) {
+    console.error('Error verificando sistema:', error);
+    alert('Error: ' + error.message);
+  }
+}
+
+async function executePhase(endpoint, method = 'POST', body = null) {
+  try {
+    const options = { method };
+    if (body) {
+      options.headers = { 'Content-Type': 'application/json' };
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(API + endpoint, options);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || `Error: ${response.status}`);
+    }
+
+    console.log('Response:', data);
+    setTimeout(update, 500);
+  } catch (error) {
+    console.error('Error ejecutando fase:', error);
+    alert('Error: ' + error.message);
+  }
+}
+
+function render(state) {
+  // Estado
+  const statusEl = document.getElementById('status');
+  const statusClass = state.status === 'loading' ? 'loading' : state.status === 'error' ? 'error' : 'ready';
+  statusEl.textContent = `Estado: ${state.status.toUpperCase()} | Fase: ${state.current_phase}${state.error ? ' | Error: ' + state.error : ''}`;
+  statusEl.className = 'status ' + statusClass;
+
+  // Botones de fases
+  let phasesHtml = '';
+  phasesHtml += '<div class="card"><button onclick="executePhase(\'/init\', \'GET\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>⚙️ Inicializar</button></div>';
+  phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase1\', \'POST\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>1️⃣ Fase 1: Scraping</button></div>';
+  phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase2\', \'POST\', {noticia_idx:0})" ' + (state.status === 'loading' ? 'disabled' : '') + '>2️⃣ Fase 2: Ideas</button></div>';
+  phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase3\', \'POST\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>3️⃣ Fase 3: Captions</button></div>';
+  phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase4\', \'POST\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>4️⃣ Fase 4: Video</button></div>';
+  document.getElementById('phases').innerHTML = phasesHtml;
+
+  // Contenido
+  let html = '';
+
+  if (state.noticias && state.noticias.length > 0) {
+    html += '<h3>📰 Noticias (' + state.noticias.length + ')</h3>';
+    state.noticias.forEach((n, i) => {
+      html += '<div class="noticia-item">' + (n.fuente || 'Noticia') + '<br/><strong>' + (n.titulo ? n.titulo.substring(0, 80) : 'Sin título') + '</strong></div>';
+    });
+  }
+
+  if (state.ideas && state.ideas.length > 0) {
+    html += '<h3>💡 Ideas (' + state.ideas.length + ')</h3>';
+    state.ideas.forEach(i => {
+      html += '<div class="resultado">Idea: ' + (i.titulo || i.concepto || JSON.stringify(i).substring(0, 100)) + '</div>';
+    });
+  }
+
+  if (state.prompts && state.prompts.length > 0) {
+    html += '<h3>🎨 Prompts (' + state.prompts.length + ')</h3>';
+    state.prompts.forEach(p => {
+      html += '<div class="resultado">' + (p.prompt || p.description || JSON.stringify(p).substring(0, 100)) + '</div>';
+    });
+  }
+
+  if (state.captions && state.captions.length > 0) {
+    html += '<h3>✍️ Captions (' + state.captions.length + ')</h3>';
+    state.captions.forEach(c => {
+      html += '<div class="resultado">' + (c.caption || c.text || JSON.stringify(c).substring(0, 100)) + '</div>';
+    });
+  }
+
+  if (state.video) {
+    html += '<h3>🎬 Video Generado</h3>';
+    html += '<div class="resultado">Archivo: ' + (state.video.path || state.video.file || JSON.stringify(state.video).substring(0, 100)) + '</div>';
+  }
+
+  document.getElementById('content').innerHTML = html;
+}
+
+function update() {
+  fetch(API + '/state')
+    .then(r => r.json())
+    .then(state => render(state))
+    .catch(e => {
+      console.error('Error obteniendo estado:', e);
+      document.getElementById('status').textContent = 'Error de conexión con servidor';
+      document.getElementById('status').className = 'status error';
+    });
+}
+
+setInterval(update, 1000);
+update();
+</script>
+</body>
+</html>

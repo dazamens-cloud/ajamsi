@@ -75,6 +75,14 @@
     "tono": "humor_sardónico_canario",
     "ollama_url": "http://localhost:11434"
   },
+  "prompt_engineer": {
+    "proveedor": "ollama",
+    "modelo": "qwen3.5:9b",
+    "temperatura": 0.7,
+    "ollama_url": "http://localhost:11434",
+    "timeout": 30,
+    "comentario": "FASE 1: Usa Ollama Qwen3.5:9b para generar prompts (SIN COSTO, 100% LOCAL)"
+  },
   "generador_imagenes": {
     "proveedor": "gemini",
     "modelo": "gemini-2.0-flash",

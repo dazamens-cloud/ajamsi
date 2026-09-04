@@ -1,0 +1,12 @@
+[2026-09-03 01:28:13] [INFO] ======================================
+[2026-09-03 01:28:14] [INFO] AJAMSI Server Monitor - Iniciando
+[2026-09-03 01:28:14] [INFO] Intervalo chequeo: 10 segundos
+[2026-09-03 01:28:14] [INFO] Max reintentos: 2
+[2026-09-03 01:28:14] [INFO] Ruta log: D:\proyectos godot\tik tok\ajamsi\servidor.log
+[2026-09-03 01:28:14] [INFO] ======================================
+[2026-09-03 01:28:14] [INFO] Terminando procesos Python anteriores...
+[2026-09-03 01:28:14] [INFO] No hay procesos Python ejecutándose
+[2026-09-03 01:28:14] [INFO] Iniciando servidor Flask...
+[2026-09-03 01:28:14] [SUCCESS] Proceso Flask iniciado (JobID: 1)
+[2026-09-03 01:28:19] [SUCCESS] Monitoreo iniciado correctamente
+[2026-09-03 01:28:19] [INFO] ======================================
