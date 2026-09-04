@@ -149,12 +149,17 @@ class HealthCheckAgent:
 
     def _check_dependencias(self) -> Tuple[bool, str]:
         """Verificar dependencias de Python"""
-        required = ['flask', 'flask_cors', 'feedparser', 'beautifulsoup4']
+        required = {
+            'flask': 'flask',
+            'flask_cors': 'flask_cors',
+            'feedparser': 'feedparser',
+            'beautifulsoup4': 'bs4'  # beautifulsoup4 importa como bs4
+        }
         missing = []
 
-        for package in required:
+        for package, import_name in required.items():
             try:
-                __import__(package.replace('-', '_'))
+                __import__(import_name)
             except ImportError:
                 missing.append(package)
 
