@@ -138,7 +138,7 @@ class VideoCompilerAgent:
         filtro = (
             f"[0:v]scale={int(w)*2}:{int(h)*2}:force_original_aspect_ratio=increase,"
             f"crop={int(w)*2}:{int(h)*2},"
-            f"zoompan=z='min(zoom+0.0012,1.25)':d={total_frames}"
+            f"zoompan=z='min(zoom+0.0003,1.08)':d={total_frames}"
             f":x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
             f":s={w}x{h}:fps={fps}[v]"
         )
