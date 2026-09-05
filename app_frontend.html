@@ -60,6 +60,10 @@ h3 { color: #00d4ff; margin-top: 1.5rem; margin-bottom: 0.5rem; }
 <h3>Fases</h3>
 <div class="phase-container" id="phases"></div>
 
+<div id="selector-wrapper" style="display: none; background: #222; border: 2px solid #7c3aed; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0;">
+  <div id="selector-content"></div>
+</div>
+
 <div id="content"></div>
 
 <script>
@@ -129,7 +133,7 @@ async function mostrarSelectorNoticias() {
     const data = await response.json();
 
     let html = '<h3>📰 Selecciona Noticias (Total: ' + data.total + ')</h3>';
-    html += '<p style="color: #888; font-size: 0.9rem;">Marca las noticias que quieres usar para Fase 2</p>';
+    html += '<p style="color: #888; font-size: 0.9rem;">✅ Marca las noticias que quieres usar para Fase 2</p>';
 
     data.noticias.forEach((n, i) => {
       const checked = data.seleccionadas.includes(i) ? 'checked' : '';
@@ -145,7 +149,10 @@ async function mostrarSelectorNoticias() {
 
     html += '<button class="btn-continuar" onclick="guardarSeleccionNoticias()">✅ Continuar a Fase 2</button>';
 
-    document.getElementById('content').innerHTML = html;
+    document.getElementById('selector-content').innerHTML = html;
+    document.getElementById('selector-wrapper').style.display = 'block';
+    // Scroll hacia el selector
+    setTimeout(() => document.getElementById('selector-wrapper').scrollIntoView({behavior: 'smooth'}), 100);
   } catch (error) {
     console.error('Error mostrando selector:', error);
   }
@@ -339,13 +346,6 @@ function render(state) {
 
   // Contenido
   let html = '';
-
-  if (state.noticias && state.noticias.length > 0 && state.current_phase === 1) {
-    html += '<h3>📰 Noticias (' + state.noticias.length + ')</h3>';
-    state.noticias.forEach((n, i) => {
-      html += '<div class="noticia-item">' + (n.fuente || 'Noticia') + '<br/><strong>' + (n.titulo ? n.titulo.substring(0, 80) : 'Sin título') + '</strong></div>';
-    });
-  }
 
   if (state.ideas && state.ideas.length > 0) {
     html += '<h3>💡 Ideas (' + state.ideas.length + ')</h3>';
