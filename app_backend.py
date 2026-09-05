@@ -3,13 +3,19 @@ AJAMSI - Backend API Flask
 API para ejecutar el pipeline de manera interactiva
 """
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import sys
+import os
 from pathlib import Path
 import json
 import threading
 from datetime import datetime
+
+# Windows: evitar crashes de cp1252 al imprimir emojis en consola
+if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
@@ -35,9 +41,18 @@ state = {
     'video': None,
     'error': None,
     'timestamp': None,
+    'progress': {
+        'activo': False,
+        'porcentaje': 0,
+        'paso': '',
+        'detalle': '',
+        'logs': [],
+    },
+    'resultado_final': None,
 }
 
 orquestador = None
+VIDEOS_DIR = Path(__file__).parent / "videos"
 
 @app.route('/')
 def index():
@@ -294,6 +309,121 @@ def phase3_correct():
         'mensaje': f'{len(captions_corregidos)} captions guardados'
     })
 
+@app.route('/api/run-all', methods=['POST'])
+def run_all():
+    """PIPELINE COMPLETO: procesa todas las noticias seleccionadas de principio a fin"""
+    if not orquestador:
+        return jsonify({'status': 'error', 'error': 'Orquestador no inicializado'}), 400
+
+    indices = state['noticias_indices_seleccionadas']
+    if not indices:
+        return jsonify({'status': 'error', 'error': 'No hay noticias seleccionadas'}), 400
+    if state['progress']['activo']:
+        return jsonify({'status': 'error', 'error': 'Ya hay un pipeline en ejecución'}), 400
+
+    noticias = [state['noticias'][i] for i in indices]
+
+    def progreso_cb(pct, paso, detalle):
+        state['progress']['porcentaje'] = pct
+        state['progress']['paso'] = paso
+        state['progress']['detalle'] = detalle
+        state['progress']['logs'].append({
+            'hora': datetime.now().strftime('%H:%M:%S'),
+            'pct': pct, 'paso': paso, 'detalle': detalle,
+        })
+        state['progress']['logs'] = state['progress']['logs'][-50:]
+
+    def run_pipeline():
+        try:
+            state['status'] = 'loading'
+            state['progress']['activo'] = True
+            state['progress']['porcentaje'] = 0
+            state['progress']['logs'] = []
+            state['error'] = None
+            state['resultado_final'] = None
+
+            resultado = orquestador.ejecutar_pipeline_completo(noticias, progreso_cb)
+
+            # Serializar resultado (sin objetos no serializables)
+            state['resultado_final'] = {
+                'status': resultado['status'],
+                'videos_generados': resultado['videos_generados'],
+                'doc_path': resultado['doc_path'],
+                'errores': resultado['errores'],
+                'items': [
+                    {
+                        'titulo': r['noticia'].get('titulo', ''),
+                        'video_filename': (r.get('video') or {}).get('video_filename'),
+                        'video_path': (r.get('video') or {}).get('video_path'),
+                        'tamaño_mb': (r.get('video') or {}).get('tamaño_mb'),
+                        'duracion': (r.get('video') or {}).get('duracion_segundos'),
+                        'imagen_filename': (r.get('imagen') or {}).get('imagen_filename'),
+                        'caption_recomendado': max(
+                            r.get('captions', []),
+                            key=lambda c: c.get('engagement_score', 0)
+                        ).get('caption_completo', '') if r.get('captions') else '',
+                    }
+                    for r in resultado['resultados']
+                ],
+            }
+            state['current_phase'] = 4
+            state['status'] = 'ready'
+            state['timestamp'] = datetime.now().isoformat()
+
+            # Abrir carpeta de videos automáticamente (Windows)
+            if resultado['videos_generados'] > 0:
+                try:
+                    os.startfile(str(VIDEOS_DIR))
+                except Exception as e:
+                    print(f"No se pudo abrir la carpeta: {e}")
+
+        except Exception as e:
+            state['error'] = str(e)
+            state['status'] = 'error'
+            print(f"❌ Error en pipeline completo: {e}")
+        finally:
+            state['progress']['activo'] = False
+
+    thread = threading.Thread(target=run_pipeline)
+    thread.start()
+
+    return jsonify({
+        'status': 'loading',
+        'message': f'Pipeline completo iniciado para {len(noticias)} noticias...'
+    })
+
+@app.route('/api/open-folder', methods=['POST'])
+def open_folder():
+    """Abrir la carpeta de videos en el explorador de Windows"""
+    try:
+        VIDEOS_DIR.mkdir(parents=True, exist_ok=True)
+        os.startfile(str(VIDEOS_DIR))
+        return jsonify({'status': 'success', 'path': str(VIDEOS_DIR)})
+    except Exception as e:
+        return jsonify({'status': 'error', 'error': str(e)}), 500
+
+@app.route('/api/videos-list', methods=['GET'])
+def videos_list():
+    """Listar archivos generados en la carpeta de videos"""
+    try:
+        VIDEOS_DIR.mkdir(parents=True, exist_ok=True)
+        archivos = []
+        for f in sorted(VIDEOS_DIR.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True):
+            if f.is_file():
+                archivos.append({
+                    'nombre': f.name,
+                    'tamaño_mb': round(f.stat().st_size / (1024 * 1024), 2),
+                    'tipo': 'video' if f.suffix == '.mp4' else 'documento' if f.suffix == '.docx' else 'otro',
+                })
+        return jsonify({'archivos': archivos, 'carpeta': str(VIDEOS_DIR)})
+    except Exception as e:
+        return jsonify({'status': 'error', 'error': str(e)}), 500
+
+@app.route('/videos/<path:filename>')
+def serve_video(filename):
+    """Servir un video generado para previsualizarlo en la PWA"""
+    return send_from_directory(str(VIDEOS_DIR), filename)
+
 @app.route('/api/state', methods=['GET'])
 def get_state():
     """Obtener estado actual del sistema"""
@@ -366,6 +496,14 @@ def reset():
         'video': None,
         'error': None,
         'timestamp': None,
+        'progress': {
+            'activo': False,
+            'porcentaje': 0,
+            'paso': '',
+            'detalle': '',
+            'logs': [],
+        },
+        'resultado_final': None,
     }
     return jsonify({'status': 'success'})
 

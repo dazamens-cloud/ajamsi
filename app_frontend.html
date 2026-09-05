@@ -1,394 +1,386 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>AJAMSI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AJAMSI Studio</title>
 <style>
-body { background: #1e1e2e; color: #e0e0e0; font-family: Arial; padding: 2rem; margin: 0; }
-h1 { color: #00d4ff; margin: 0; }
-.status { color: #888; font-size: 0.9rem; margin: 0.5rem 0 2rem 0; }
-.status.loading { color: #00d4ff; }
-.status.error { color: #ff6b6b; }
-.status.ready { color: #51cf66; }
-.phase-container { display: grid; grid-template-columns: 1fr; gap: 0.8rem; margin: 1rem 0; }
-.card { background: #222; border: 2px solid #7c3aed; padding: 1rem; border-radius: 8px; }
-button { background: #7c3aed; color: white; padding: 0.7rem 1.5rem; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 1rem; transition: all 0.2s; }
-button:hover { background: #00d4ff; transform: translateY(-2px); }
-button:active { transform: translateY(0); }
-button.loading { background: #5a2aad; opacity: 0.7; cursor: wait; }
-.resultado { background: #2a2a3e; border-left: 4px solid #00d4ff; padding: 0.8rem; margin: 0.5rem 0; border-radius: 4px; }
-.error { border-left-color: #ff6b6b; }
-h3 { color: #00d4ff; margin-top: 1.5rem; margin-bottom: 0.5rem; }
-.noticia-item { background: #2a2a3e; padding: 0.8rem; margin: 0.3rem 0; border-left: 3px solid #7c3aed; border-radius: 3px; }
-.noticia-checkbox { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem; background: #2a2a3e; margin: 0.5rem 0; border-radius: 4px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
-.noticia-checkbox:hover { border-color: #00d4ff; }
-.noticia-checkbox input { width: 20px; height: 20px; cursor: pointer; }
-.noticia-checkbox.selected { background: #1a3a3a; border-color: #51cf66; }
-.noticia-info { flex: 1; }
-.noticia-titulo { font-weight: bold; color: #00d4ff; }
-.noticia-fuente { font-size: 0.85rem; color: #888; }
-.btn-continuar { background: #51cf66; margin-top: 1rem; }
-.btn-continuar:hover { background: #3db84f; }
-.idea-card { background: #2a2a3e; border: 2px solid #7c3aed; padding: 1rem; margin: 0.8rem 0; border-radius: 8px; }
-.idea-card textarea { width: 100%; min-height: 100px; background: #1e1e2e; color: #e0e0e0; border: 1px solid #7c3aed; padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.9rem; margin-top: 0.5rem; }
-.idea-meta { font-size: 0.85rem; color: #888; margin: 0.5rem 0; }
-.idea-label { color: #00d4ff; font-weight: bold; margin-bottom: 0.5rem; }
-.caption-card { background: #2a2a3e; border: 2px solid #51cf66; padding: 1rem; margin: 0.8rem 0; border-radius: 8px; }
-.caption-card textarea { width: 100%; min-height: 60px; background: #1e1e2e; color: #e0e0e0; border: 1px solid #51cf66; padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.9rem; margin-top: 0.5rem; }
-.caption-meta { font-size: 0.85rem; color: #888; margin: 0.5rem 0; }
-.caption-label { color: #51cf66; font-weight: bold; margin-bottom: 0.5rem; }
-.engagement-score { display: inline-block; background: #7c3aed; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.85rem; margin-left: 0.5rem; }
+:root {
+  --bg: #14141f;
+  --panel: #1e1e2e;
+  --panel2: #2a2a3e;
+  --morado: #7c3aed;
+  --cian: #00d4ff;
+  --verde: #51cf66;
+  --rojo: #ff6b6b;
+  --amarillo: #ffd60a;
+  --texto: #e0e0e0;
+  --gris: #888;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--texto); font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 1.5rem; }
+.contenedor { max-width: 900px; margin: 0 auto; }
+header { text-align: center; margin-bottom: 1.5rem; }
+h1 { color: var(--cian); margin: 0; font-size: 2rem; }
+.subtitulo { color: var(--gris); font-size: 0.9rem; }
+
+/* Stepper */
+.stepper { display: flex; justify-content: center; gap: 0; margin: 1.5rem 0; }
+.step { display: flex; flex-direction: column; align-items: center; flex: 1; max-width: 160px; position: relative; }
+.step::before { content: ''; position: absolute; top: 20px; left: -50%; width: 100%; height: 3px; background: var(--panel2); z-index: 0; }
+.step:first-child::before { display: none; }
+.step.done::before, .step.activo::before { background: var(--verde); }
+.step-circulo { width: 40px; height: 40px; border-radius: 50%; background: var(--panel2); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; z-index: 1; border: 3px solid var(--panel2); transition: all .3s; }
+.step.activo .step-circulo { border-color: var(--cian); background: var(--panel); box-shadow: 0 0 15px rgba(0,212,255,.4); }
+.step.done .step-circulo { background: var(--verde); border-color: var(--verde); }
+.step-nombre { font-size: 0.75rem; color: var(--gris); margin-top: 0.4rem; text-align: center; }
+.step.activo .step-nombre { color: var(--cian); font-weight: bold; }
+.step.done .step-nombre { color: var(--verde); }
+
+/* Paneles */
+.panel { background: var(--panel); border: 2px solid var(--morado); border-radius: 12px; padding: 1.2rem; margin: 1rem 0; }
+.panel h2 { color: var(--cian); margin: 0 0 0.8rem 0; font-size: 1.2rem; }
+.oculto { display: none !important; }
+
+button { background: var(--morado); color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 1.05rem; font-weight: 600; transition: all .2s; }
+button:hover:not(:disabled) { filter: brightness(1.2); transform: translateY(-2px); }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+button.verde { background: var(--verde); color: #10251a; }
+button.gigante { padding: 1.2rem; font-size: 1.3rem; background: linear-gradient(135deg, var(--morado), var(--cian)); }
+button.secundario { background: var(--panel2); border: 1px solid var(--morado); }
+
+/* Noticias */
+.noticia { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem; background: var(--panel2); margin: 0.5rem 0; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all .2s; }
+.noticia:hover { border-color: var(--cian); }
+.noticia.sel { background: #1a3a2a; border-color: var(--verde); }
+.noticia input { width: 22px; height: 22px; cursor: pointer; accent-color: var(--verde); flex-shrink: 0; }
+.noticia-titulo { font-weight: 600; color: #cfe8ff; font-size: 0.95rem; }
+.noticia-fuente { font-size: 0.8rem; color: var(--gris); }
+
+/* Progreso */
+.barra-wrap { background: var(--panel2); border-radius: 20px; height: 34px; overflow: hidden; position: relative; margin: 0.8rem 0; }
+.barra { height: 100%; width: 0%; background: linear-gradient(90deg, var(--morado), var(--cian)); transition: width .5s ease; border-radius: 20px; }
+.barra-texto { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.95rem; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
+.paso-actual { text-align: center; font-size: 1.05rem; color: var(--amarillo); min-height: 1.5em; }
+.detalle-actual { text-align: center; font-size: 0.85rem; color: var(--gris); min-height: 1.3em; }
+.logs { background: #101018; border-radius: 8px; padding: 0.8rem; margin-top: 0.8rem; max-height: 220px; overflow-y: auto; font-family: 'Consolas', monospace; font-size: 0.8rem; }
+.log-linea { padding: 0.15rem 0; border-bottom: 1px solid #1c1c2a; }
+.log-hora { color: var(--gris); margin-right: 0.5rem; }
+
+/* Resultados */
+.video-card { background: var(--panel2); border-radius: 10px; padding: 1rem; margin: 0.8rem 0; border-left: 4px solid var(--verde); }
+.video-card h3 { color: var(--cian); margin: 0 0 0.5rem 0; font-size: 1rem; }
+.video-card video { width: 100%; max-width: 280px; border-radius: 8px; display: block; margin: 0.5rem auto; }
+.caption-box { background: #101018; padding: 0.7rem; border-radius: 6px; font-size: 0.85rem; white-space: pre-wrap; margin-top: 0.5rem; position: relative; }
+.btn-copiar { position: absolute; top: 6px; right: 6px; width: auto; padding: 0.25rem 0.6rem; font-size: 0.75rem; background: var(--panel2); }
+.meta { font-size: 0.8rem; color: var(--gris); }
+.fila-botones { display: flex; gap: 0.8rem; margin-top: 1rem; flex-wrap: wrap; }
+.fila-botones button { flex: 1; min-width: 200px; }
+.aviso { background: #2a2410; border: 1px solid var(--amarillo); border-radius: 8px; padding: 0.8rem; font-size: 0.9rem; margin: 0.8rem 0; }
+.error-box { background: #2a1515; border: 1px solid var(--rojo); border-radius: 8px; padding: 0.8rem; font-size: 0.9rem; margin: 0.8rem 0; color: #ffb3b3; }
+.check-item { padding: 0.3rem 0; font-size: 0.9rem; }
 </style>
 </head>
 <body>
-<h1>🚀 AJAMSI Control Panel - HTML NUEVO FUNCIONA!</h1>
-<p>Pipeline de generación de contenido automático - ACTUALIZADO</p>
-<div class="status" id="status"></div>
+<div class="contenedor">
+  <header>
+    <h1>🎬 AJAMSI Studio</h1>
+    <div class="subtitulo">Noticias de Canarias → Videos para TikTok · 100% local · $0/mes</div>
+  </header>
 
-<h3>⚙️ Control</h3>
-<div class="phase-container">
-  <div class="card"><button onclick="verificarSistema()" style="background: #ff9800;">🔍 Verificar Sistema</button></div>
+  <!-- Stepper -->
+  <div class="stepper">
+    <div class="step" id="step-1"><div class="step-circulo">⚙️</div><div class="step-nombre">Sistema</div></div>
+    <div class="step" id="step-2"><div class="step-circulo">📰</div><div class="step-nombre">Noticias</div></div>
+    <div class="step" id="step-3"><div class="step-circulo">✅</div><div class="step-nombre">Selección</div></div>
+    <div class="step" id="step-4"><div class="step-circulo">🎬</div><div class="step-nombre">Generación</div></div>
+    <div class="step" id="step-5"><div class="step-circulo">📂</div><div class="step-nombre">Publicar</div></div>
+  </div>
+
+  <!-- PASO 1: Inicializar -->
+  <div class="panel" id="panel-init">
+    <h2>⚙️ Paso 1 · Iniciar sistema</h2>
+    <p style="color:var(--gris); font-size:0.9rem">Verifica FFmpeg, Ollama, voces TTS y carga los agentes.</p>
+    <div id="checks"></div>
+    <button id="btn-init" onclick="iniciarSistema()">▶️ Iniciar Sistema</button>
+  </div>
+
+  <!-- PASO 2: Noticias -->
+  <div class="panel oculto" id="panel-noticias">
+    <h2>📰 Paso 2 · Buscar noticias de Canarias</h2>
+    <button id="btn-scraping" onclick="buscarNoticias()">🔍 Buscar Noticias (últimos 7 días)</button>
+    <div id="lista-noticias"></div>
+    <button id="btn-confirmar" class="verde oculto" onclick="confirmarSeleccion()">✅ Confirmar selección (<span id="num-sel">0</span> noticias)</button>
+  </div>
+
+  <!-- PASO 3: Generar todo -->
+  <div class="panel oculto" id="panel-generar">
+    <h2>🚀 Paso 3 · Generar videos</h2>
+    <p style="color:var(--gris); font-size:0.9rem">Por cada noticia: idea → captions → imagen → narración de voz → video con efecto zoom. Al terminar se abre la carpeta y se genera el Word con descripciones y hashtags.</p>
+    <button id="btn-generar" class="gigante" onclick="generarTodo()">🎬 GENERAR TODO</button>
+  </div>
+
+  <!-- PROGRESO -->
+  <div class="panel oculto" id="panel-progreso">
+    <h2>⏳ Generando contenido...</h2>
+    <div class="barra-wrap">
+      <div class="barra" id="barra"></div>
+      <div class="barra-texto" id="barra-pct">0%</div>
+    </div>
+    <div class="paso-actual" id="paso-actual"></div>
+    <div class="detalle-actual" id="detalle-actual"></div>
+    <div class="logs" id="logs"></div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div class="panel oculto" id="panel-resultados">
+    <h2>🎉 ¡Videos listos!</h2>
+    <div id="resumen-final"></div>
+    <div id="galeria"></div>
+    <div class="fila-botones">
+      <button class="verde" onclick="abrirCarpeta()">📂 Abrir carpeta de videos</button>
+      <button class="secundario" onclick="reiniciar()">🔄 Empezar de nuevo</button>
+    </div>
+  </div>
+
+  <div class="error-box oculto" id="error-global"></div>
 </div>
-
-<div id="healthcheck-result"></div>
-
-<h3>📊 Progreso del Pipeline</h3>
-<div id="progress" style="background: #222; border: 2px solid #7c3aed; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
-  <div id="progress-bar"></div>
-</div>
-
-<h3>Fases</h3>
-<div class="phase-container" id="phases"></div>
-
-<div id="selector-wrapper" style="display: none; background: #222; border: 2px solid #7c3aed; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0;">
-  <div id="selector-content"></div>
-</div>
-
-<div id="content"></div>
 
 <script>
-const API = 'http://localhost:5000/api';
-let currentPhaseButton = null;
+const API = '';
+let noticias = [];
+let seleccion = new Set();
+let pollInterval = null;
 
-async function verificarSistema() {
-  try {
-    const response = await fetch(API + '/healthcheck');
-    const data = await response.json();
-
-    let html = '<div style="margin: 1.5rem 0;">';
-    html += `<div class="resultado" style="border-left: 4px solid ${response.ok ? '#51cf66' : '#ff6b6b'};">`;
-    html += `<strong>${data.mensaje}</strong><br/><br/>`;
-
-    // Mostrar reparaciones realizadas
-    if (data.reparaciones && data.reparaciones.length > 0) {
-      html += `<div style="margin-bottom: 1rem; padding: 0.5rem; background: rgba(81, 207, 102, 0.2); border-radius: 4px;">`;
-      html += `🔧 <strong>Reparaciones realizadas:</strong><br/>`;
-      data.reparaciones.forEach(rep => {
-        html += `✅ ${rep}<br/>`;
-      });
-      html += `</div>`;
-    }
-
-    if (data.resultados) {
-      for (const [nombre, resultado] of Object.entries(data.resultados)) {
-        const icon = resultado.status ? '✅' : '❌';
-        html += `<div style="margin-bottom: 0.5rem;">${icon} <strong>${nombre}</strong>: ${resultado.mensaje}</div>`;
-      }
-    }
-
-    html += '</div></div>';
-    document.getElementById('healthcheck-result').innerHTML = html;
-  } catch (error) {
-    console.error('Error verificando sistema:', error);
-    alert('Error: ' + error.message);
-  }
+function $(id) { return document.getElementById(id); }
+function marcarStep(n, estado) {
+  const s = $('step-' + n);
+  s.classList.remove('activo', 'done');
+  if (estado) s.classList.add(estado);
+}
+function mostrarError(msg) {
+  const e = $('error-global');
+  e.textContent = '❌ ' + msg;
+  e.classList.remove('oculto');
+  setTimeout(() => e.classList.add('oculto'), 8000);
 }
 
-async function executePhase(endpoint, method = 'POST', body = null) {
+marcarStep(1, 'activo');
+
+// ---------- PASO 1: INIT ----------
+async function iniciarSistema() {
+  const btn = $('btn-init');
+  btn.disabled = true;
+  btn.textContent = '⏳ Verificando sistema...';
   try {
-    const options = { method };
-    if (body) {
-      options.headers = { 'Content-Type': 'application/json' };
-      options.body = JSON.stringify(body);
+    const hc = await fetch(API + '/api/healthcheck').then(r => r.json());
+    const checks = $('checks');
+    checks.innerHTML = '';
+    for (const [nombre, r] of Object.entries(hc.resultados || {})) {
+      checks.innerHTML += `<div class="check-item">${r.status ? '✅' : '❌'} <b>${nombre}</b>: ${r.mensaje}</div>`;
     }
-
-    const response = await fetch(API + endpoint, options);
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || `Error: ${response.status}`);
-    }
-
-    console.log('Response:', data);
-    setTimeout(update, 500);
-  } catch (error) {
-    console.error('Error ejecutando fase:', error);
-    alert('Error: ' + error.message);
-  }
-}
-
-async function mostrarSelectorNoticias() {
-  try {
-    const response = await fetch(API + '/phase1-get-results');
-    const data = await response.json();
-
-    let html = '<h3>📰 Selecciona Noticias (Total: ' + data.total + ')</h3>';
-    html += '<p style="color: #888; font-size: 0.9rem;">✅ Marca las noticias que quieres usar para Fase 2</p>';
-
-    data.noticias.forEach((n, i) => {
-      const checked = data.seleccionadas.includes(i) ? 'checked' : '';
-      const selectedClass = data.seleccionadas.includes(i) ? 'selected' : '';
-      html += `<label class="noticia-checkbox ${selectedClass}">
-        <input type="checkbox" id="noticia-${i}" ${checked} onchange="actualizarSeleccion()">
-        <div class="noticia-info">
-          <div class="noticia-titulo">${n.titulo.substring(0, 100)}</div>
-          <div class="noticia-fuente">📌 ${n.fuente}</div>
-        </div>
-      </label>`;
-    });
-
-    html += '<button class="btn-continuar" onclick="guardarSeleccionNoticias()">✅ Continuar a Fase 2</button>';
-
-    document.getElementById('selector-content').innerHTML = html;
-    document.getElementById('selector-wrapper').style.display = 'block';
-    // Scroll hacia el selector
-    setTimeout(() => document.getElementById('selector-wrapper').scrollIntoView({behavior: 'smooth'}), 100);
-  } catch (error) {
-    console.error('Error mostrando selector:', error);
-  }
-}
-
-function actualizarSeleccion() {
-  const checkboxes = document.querySelectorAll('.noticia-checkbox input');
-  checkboxes.forEach((cb, i) => {
-    const label = cb.closest('.noticia-checkbox');
-    if (cb.checked) {
-      label.classList.add('selected');
-    } else {
-      label.classList.remove('selected');
-    }
-  });
-}
-
-async function guardarSeleccionNoticias() {
-  try {
-    const checkboxes = document.querySelectorAll('.noticia-checkbox input:checked');
-    const indices = Array.from(checkboxes).map(cb => parseInt(cb.id.split('-')[1]));
-
-    if (indices.length === 0) {
-      alert('Selecciona al menos una noticia');
+    if (hc.status !== 'ok') {
+      mostrarError('Faltan requisitos del sistema. Revisa la lista.');
+      btn.disabled = false;
+      btn.textContent = '🔄 Reintentar';
       return;
     }
+    btn.textContent = '⏳ Cargando agentes...';
+    const init = await fetch(API + '/api/init').then(r => r.json());
+    if (init.status !== 'success') throw new Error(init.error || 'Error inicializando');
 
-    const response = await fetch(API + '/phase1-select', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ indices })
-    });
-
-    const data = await response.json();
-    alert('✅ ' + data.mensaje);
-  } catch (error) {
-    console.error('Error guardando selección:', error);
-    alert('Error: ' + error.message);
+    btn.textContent = '✅ Sistema listo';
+    marcarStep(1, 'done');
+    marcarStep(2, 'activo');
+    $('panel-noticias').classList.remove('oculto');
+    $('panel-noticias').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    mostrarError(e.message);
+    btn.disabled = false;
+    btn.textContent = '🔄 Reintentar';
   }
 }
 
-async function mostrarEditorIdeas() {
+// ---------- PASO 2: NOTICIAS ----------
+async function buscarNoticias() {
+  const btn = $('btn-scraping');
+  btn.disabled = true;
+  btn.textContent = '⏳ Buscando en los periódicos canarios...';
   try {
-    const response = await fetch(API + '/phase2-get-results');
-    const data = await response.json();
+    await fetch(API + '/api/phase1', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}' });
+    // Esperar a que termine el scraping (polling)
+    let intentos = 0;
+    while (intentos < 60) {
+      await new Promise(r => setTimeout(r, 1500));
+      const st = await fetch(API + '/api/state').then(r => r.json());
+      if (st.status === 'ready' && st.noticias.length > 0) {
+        noticias = st.noticias;
+        break;
+      }
+      if (st.status === 'error') throw new Error(st.error || 'Error en scraping');
+      intentos++;
+    }
+    if (noticias.length === 0) throw new Error('No se encontraron noticias');
 
-    let html = '<h3>💡 Revisa y Corrige las Ideas (Total: ' + data.total_ideas + ')</h3>';
-    html += '<p style="color: #888; font-size: 0.9rem;">Puedes editar cada idea si es necesario</p>';
+    btn.textContent = `✅ ${noticias.length} noticias encontradas`;
+    renderNoticias();
+    marcarStep(2, 'done');
+    marcarStep(3, 'activo');
+  } catch (e) {
+    mostrarError(e.message);
+    btn.disabled = false;
+    btn.textContent = '🔄 Reintentar búsqueda';
+  }
+}
 
-    data.ideas.forEach((idea, i) => {
-      const concepto = idea.concepto || idea.titulo || 'Sin concepto';
-      const descripcion = idea.descripcion || idea.text || '';
-      html += `<div class="idea-card">
-        <div class="idea-label">💭 Idea ${i + 1}</div>
-        <div class="idea-meta">Ángulo: ${idea.angulo_humor || 'N/A'} | Relevancia: ${idea.relevancia || 'N/A'}</div>
-        <textarea id="idea-${i}" placeholder="Concepto de idea...">${concepto}</textarea>
-        <div style="font-size: 0.85rem; color: #aaa; margin-top: 0.5rem;">Descripción: ${descripcion.substring(0, 150)}</div>
+function renderNoticias() {
+  const cont = $('lista-noticias');
+  cont.innerHTML = '<p style="color:var(--amarillo); font-size:0.9rem">👇 Marca las noticias que quieres convertir en video:</p>';
+  noticias.forEach((n, i) => {
+    const div = document.createElement('div');
+    div.className = 'noticia';
+    div.innerHTML = `
+      <input type="checkbox" id="chk-${i}">
+      <div>
+        <div class="noticia-titulo">${i + 1}. ${n.titulo}</div>
+        <div class="noticia-fuente">📌 ${n.fuente || 'desconocida'}</div>
       </div>`;
-    });
-
-    html += '<button class="btn-continuar" onclick="guardarIdeasCorregidas()">✅ Continuar a Fase 3</button>';
-
-    document.getElementById('content').innerHTML = html;
-  } catch (error) {
-    console.error('Error mostrando ideas:', error);
-  }
-}
-
-async function guardarIdeasCorregidas() {
-  try {
-    const textareas = document.querySelectorAll('.idea-card textarea');
-    const ideas = Array.from(textareas).map((ta, i) => ({
-      id: i,
-      concepto: ta.value,
-      editado: true
-    }));
-
-    const response = await fetch(API + '/phase2-correct', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ideas })
-    });
-
-    const data = await response.json();
-    alert('✅ ' + data.mensaje);
-  } catch (error) {
-    console.error('Error guardando ideas:', error);
-    alert('Error: ' + error.message);
-  }
-}
-
-async function mostrarEditorCaptions() {
-  try {
-    const response = await fetch(API + '/phase3-get-results');
-    const data = await response.json();
-
-    let html = '<h3>✍️ Revisa y Corrige los Captions (Total: ' + data.total_captions + ')</h3>';
-    html += '<p style="color: #888; font-size: 0.9rem;">Puedes editar cada caption y sus hashtags</p>';
-
-    data.captions.forEach((caption, i) => {
-      const texto = caption.caption || caption.text || 'Sin caption';
-      const hashtags = caption.hashtags || '#canarias';
-      const engagement = caption.engagement_score || 0;
-      const tipo = caption.tipo || 'N/A';
-
-      html += `<div class="caption-card">
-        <div class="caption-label">
-          📝 Caption ${i + 1}
-          <span class="engagement-score">💯 ${(engagement * 100).toFixed(0)}%</span>
-        </div>
-        <div class="caption-meta">Tipo: ${tipo}</div>
-        <textarea id="caption-${i}" placeholder="Texto del caption...">${texto}</textarea>
-        <div style="font-size: 0.85rem; margin-top: 0.5rem;">
-          <strong>Hashtags:</strong> ${hashtags}
-        </div>
-      </div>`;
-    });
-
-    html += '<button class="btn-continuar" onclick="guardarCaptionsCorregidos()">✅ Continuar a Fase 4 (Video)</button>';
-
-    document.getElementById('content').innerHTML = html;
-  } catch (error) {
-    console.error('Error mostrando captions:', error);
-  }
-}
-
-async function guardarCaptionsCorregidos() {
-  try {
-    const textareas = document.querySelectorAll('.caption-card textarea');
-    const captions = Array.from(textareas).map((ta, i) => ({
-      id: i,
-      caption: ta.value,
-      editado: true
-    }));
-
-    const response = await fetch(API + '/phase3-correct', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ captions })
-    });
-
-    const data = await response.json();
-    alert('✅ ' + data.mensaje);
-  } catch (error) {
-    console.error('Error guardando captions:', error);
-    alert('Error: ' + error.message);
-  }
-}
-
-function render(state) {
-  // Estado
-  const statusEl = document.getElementById('status');
-  const statusClass = state.status === 'loading' ? 'loading' : state.status === 'error' ? 'error' : 'ready';
-  statusEl.textContent = `Estado: ${state.status.toUpperCase()} | Fase: ${state.current_phase}${state.error ? ' | Error: ' + state.error : ''}`;
-  statusEl.className = 'status ' + statusClass;
-
-  // Progreso del pipeline
-  const phases = [
-    { num: 0, name: 'Verificación', icon: '🔍', done: state.current_phase >= 0 },
-    { num: 1, name: 'Noticias', icon: '📰', done: state.current_phase >= 1 && state.noticias.length > 0 },
-    { num: 1.5, name: 'Selección', icon: '📋', done: state.noticias_indices_seleccionadas.length > 0 },
-    { num: 2, name: 'Ideas', icon: '💡', done: state.current_phase >= 2 && state.ideas.length > 0 },
-    { num: 2.5, name: 'Revisión Ideas', icon: '📝', done: state.ideas_seleccionadas.length > 0 },
-    { num: 3, name: 'Captions', icon: '✍️', done: state.current_phase >= 3 && state.captions.length > 0 },
-    { num: 3.5, name: 'Revisión Captions', icon: '✍️', done: state.captions_seleccionados.length > 0 },
-    { num: 4, name: 'Video', icon: '🎬', done: state.video !== null }
-  ];
-
-  let progressHtml = '<div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: space-between;">';
-  phases.forEach(phase => {
-    const bg = phase.done ? '#51cf66' : '#5a2aad';
-    const color = phase.done ? '#000' : '#ccc';
-    progressHtml += `<div style="background: ${bg}; color: ${color}; padding: 0.5rem 0.8rem; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">
-      ${phase.icon} ${phase.name}
-    </div>`;
+    div.onclick = (ev) => {
+      if (ev.target.tagName !== 'INPUT') {
+        const chk = div.querySelector('input');
+        chk.checked = !chk.checked;
+      }
+      toggleSeleccion(i, div);
+    };
+    div.querySelector('input').onchange = () => toggleSeleccion(i, div, true);
+    cont.appendChild(div);
   });
-  progressHtml += '</div>';
-  document.getElementById('progress-bar').innerHTML = progressHtml;
-
-  // Botones de fases
-  let phasesHtml = '';
-  phasesHtml += '<div class="card"><button onclick="executePhase(\'/init\', \'GET\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>⚙️ Inicializar</button></div>';
-  phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase1\', \'POST\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>1️⃣ Fase 1: Scraping</button></div>';
-  phasesHtml += '<div class="card"><button onclick="mostrarSelectorNoticias()" ' + (state.status === 'loading' ? 'disabled' : '') + '>📋 Seleccionar Noticias</button></div>';
-  phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase2\', \'POST\', {noticia_idx:0})" ' + (state.status === 'loading' ? 'disabled' : '') + '>2️⃣ Fase 2: Ideas</button></div>';
-  phasesHtml += '<div class="card"><button onclick="mostrarEditorIdeas()" ' + (state.status === 'loading' ? 'disabled' : '') + '>📝 Revisar Ideas</button></div>';
-  phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase3\', \'POST\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>3️⃣ Fase 3: Captions</button></div>';
-  phasesHtml += '<div class="card"><button onclick="mostrarEditorCaptions()" ' + (state.status === 'loading' ? 'disabled' : '') + '>✍️ Revisar Captions</button></div>';
-  phasesHtml += '<div class="card"><button onclick="executePhase(\'/phase4\', \'POST\')" ' + (state.status === 'loading' ? 'disabled' : '') + '>4️⃣ Fase 4: Video</button></div>';
-  document.getElementById('phases').innerHTML = phasesHtml;
-
-  // Contenido
-  let html = '';
-
-  if (state.ideas && state.ideas.length > 0) {
-    html += '<h3>💡 Ideas (' + state.ideas.length + ')</h3>';
-    state.ideas.forEach(i => {
-      html += '<div class="resultado">Idea: ' + (i.titulo || i.concepto || JSON.stringify(i).substring(0, 100)) + '</div>';
-    });
-  }
-
-  if (state.prompts && state.prompts.length > 0) {
-    html += '<h3>🎨 Prompts (' + state.prompts.length + ')</h3>';
-    state.prompts.forEach(p => {
-      html += '<div class="resultado">' + (p.prompt || p.description || JSON.stringify(p).substring(0, 100)) + '</div>';
-    });
-  }
-
-  if (state.captions && state.captions.length > 0) {
-    html += '<h3>✍️ Captions (' + state.captions.length + ')</h3>';
-    state.captions.forEach(c => {
-      html += '<div class="resultado">' + (c.caption || c.text || JSON.stringify(c).substring(0, 100)) + '</div>';
-    });
-  }
-
-  if (state.video) {
-    html += '<h3>🎬 Video Generado</h3>';
-    html += '<div class="resultado">Archivo: ' + (state.video.path || state.video.file || JSON.stringify(state.video).substring(0, 100)) + '</div>';
-  }
-
-  document.getElementById('content').innerHTML = html;
+  $('btn-confirmar').classList.remove('oculto');
 }
 
-function update() {
-  fetch(API + '/state')
-    .then(r => r.json())
-    .then(state => render(state))
-    .catch(e => {
-      console.error('Error obteniendo estado:', e);
-      document.getElementById('status').textContent = 'Error de conexión con servidor';
-      document.getElementById('status').className = 'status error';
-    });
+function toggleSeleccion(i, div, desdeInput) {
+  const chk = div.querySelector('input');
+  if (chk.checked) { seleccion.add(i); div.classList.add('sel'); }
+  else { seleccion.delete(i); div.classList.remove('sel'); }
+  $('num-sel').textContent = seleccion.size;
+  $('btn-confirmar').disabled = seleccion.size === 0;
 }
 
-setInterval(update, 1000);
-update();
+async function confirmarSeleccion() {
+  if (seleccion.size === 0) { mostrarError('Selecciona al menos una noticia'); return; }
+  const btn = $('btn-confirmar');
+  btn.disabled = true;
+  try {
+    const res = await fetch(API + '/api/phase1-select', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ indices: [...seleccion] })
+    }).then(r => r.json());
+    if (res.status !== 'success') throw new Error(res.error || 'Error guardando selección');
+
+    marcarStep(3, 'done');
+    marcarStep(4, 'activo');
+    $('panel-generar').classList.remove('oculto');
+    $('panel-generar').scrollIntoView({ behavior: 'smooth' });
+    btn.textContent = `✅ ${seleccion.size} noticias confirmadas`;
+  } catch (e) {
+    mostrarError(e.message);
+    btn.disabled = false;
+  }
+}
+
+// ---------- PASO 3: GENERAR TODO ----------
+async function generarTodo() {
+  const btn = $('btn-generar');
+  btn.disabled = true;
+  btn.textContent = '⏳ Pipeline en marcha...';
+  try {
+    const res = await fetch(API + '/api/run-all', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}' }).then(r => r.json());
+    if (res.status === 'error') throw new Error(res.error);
+
+    $('panel-progreso').classList.remove('oculto');
+    $('panel-progreso').scrollIntoView({ behavior: 'smooth' });
+    pollInterval = setInterval(actualizarProgreso, 1000);
+  } catch (e) {
+    mostrarError(e.message);
+    btn.disabled = false;
+    btn.textContent = '🎬 GENERAR TODO';
+  }
+}
+
+async function actualizarProgreso() {
+  try {
+    const st = await fetch(API + '/api/state').then(r => r.json());
+    const p = st.progress || {};
+
+    $('barra').style.width = (p.porcentaje || 0) + '%';
+    $('barra-pct').textContent = (p.porcentaje || 0) + '%';
+    $('paso-actual').textContent = p.paso || '';
+    $('detalle-actual').textContent = p.detalle || '';
+
+    const logs = $('logs');
+    logs.innerHTML = (p.logs || []).map(l =>
+      `<div class="log-linea"><span class="log-hora">${l.hora}</span>${l.paso} <span style="color:var(--gris)">${l.detalle}</span></div>`
+    ).join('');
+    logs.scrollTop = logs.scrollHeight;
+
+    if (!p.activo && st.resultado_final) {
+      clearInterval(pollInterval);
+      mostrarResultados(st.resultado_final);
+    } else if (!p.activo && st.status === 'error') {
+      clearInterval(pollInterval);
+      mostrarError(st.error || 'Error en el pipeline');
+      $('btn-generar').disabled = false;
+      $('btn-generar').textContent = '🔄 Reintentar';
+    }
+  } catch (e) { /* servidor ocupado, reintenta en el siguiente tick */ }
+}
+
+// ---------- RESULTADOS ----------
+function mostrarResultados(rf) {
+  marcarStep(4, 'done');
+  marcarStep(5, 'activo');
+  $('panel-resultados').classList.remove('oculto');
+
+  const resumen = $('resumen-final');
+  let html = `<div class="aviso">✅ <b>${rf.videos_generados}</b> video(s) generados en la carpeta <b>/videos/</b>`;
+  if (rf.doc_path) html += `<br>📄 Guía de publicación Word: <b>${rf.doc_path.split('\\').pop()}</b> (en la misma carpeta)`;
+  html += `<br>📂 La carpeta se ha abierto automáticamente en el Explorador.</div>`;
+  if (rf.errores && rf.errores.length) {
+    html += `<div class="error-box">⚠️ Errores: ${rf.errores.map(e => e.noticia + ': ' + e.error).join(' · ')}</div>`;
+  }
+  resumen.innerHTML = html;
+
+  const galeria = $('galeria');
+  galeria.innerHTML = '';
+  (rf.items || []).forEach((item, i) => {
+    if (!item.video_filename) return;
+    const card = document.createElement('div');
+    card.className = 'video-card';
+    card.innerHTML = `
+      <h3>🎥 ${item.titulo}</h3>
+      <video controls preload="metadata" src="/videos/${encodeURIComponent(item.video_filename)}"></video>
+      <div class="meta">📦 ${item.tamaño_mb} MB · ⏱️ ${item.duracion}s · ${item.video_filename}</div>
+      <div class="caption-box" id="cap-${i}">${item.caption_recomendado || ''}<button class="btn-copiar" onclick="copiarCaption(${i})">📋 Copiar</button></div>`;
+    galeria.appendChild(card);
+  });
+
+  $('panel-resultados').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copiarCaption(i) {
+  const texto = $('cap-' + i).textContent.replace('📋 Copiar', '').trim();
+  navigator.clipboard.writeText(texto);
+}
+
+async function abrirCarpeta() {
+  await fetch(API + '/api/open-folder', { method: 'POST' });
+}
+
+async function reiniciar() {
+  await fetch(API + '/api/reset', { method: 'POST' });
+  location.reload();
+}
 </script>
 </body>
 </html>

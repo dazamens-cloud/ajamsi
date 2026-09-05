@@ -1,42 +1,30 @@
 @echo off
-REM Lanzador de AjamSi v1.0
-REM Ejecuta el pipeline completo
+REM Lanzador de AJAMSI Studio - PWA interactiva
+REM Arranca el servidor y abre el navegador
 
 cd /d "%~dp0"
 
 echo.
 echo ========================================
-echo   🎬 AJAMSI v1.0
-echo   Sistema de TikTok Canario
+echo   AJAMSI Studio
+echo   Noticias Canarias a Videos TikTok
 echo ========================================
 echo.
 
-REM Usar ruta completa de Python
 set PYTHON_PATH=C:\Users\andre\AppData\Local\Programs\Python\Python312\python.exe
 
-REM Verificar Python existe
 if not exist "%PYTHON_PATH%" (
-    echo ❌ Error: Python no encontrado en %PYTHON_PATH%
-    echo.
-    echo Intenta:
-    echo   1. Verificar Python instalado: where python
-    echo   2. Actualizar lanzar.bat con ruta correcta
-    echo.
+    echo ERROR: Python no encontrado en %PYTHON_PATH%
+    echo Actualiza la ruta en lanzar.bat
     pause
     exit /b 1
 )
 
-echo ✓ Python encontrado: %PYTHON_PATH%
+echo Python OK: %PYTHON_PATH%
 echo.
+echo Abriendo interfaz en http://localhost:5000 ...
+start "" "http://localhost:5000"
 
-REM Ejecutar pipeline
-echo 🚀 Iniciando pipeline AjamSi...
-echo.
+"%PYTHON_PATH%" app_backend.py
 
-"%PYTHON_PATH%" main.py
-
-echo.
-echo ========================================
-echo   ✅ Pipeline completado
-echo ========================================
 pause
