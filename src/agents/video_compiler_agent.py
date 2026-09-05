@@ -36,11 +36,12 @@ class VideoCompilerAgent:
         """Inicializar el agente compilador de videos"""
         self.config = config
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.videos_dir = Path(config.get('compilador_videos', {}).get('output_dir', 'data/videos'))
+        base_dir = Path(__file__).parent.parent.parent
+        self.videos_dir = base_dir / "videos"
         self.videos_dir.mkdir(parents=True, exist_ok=True)
 
         self.ffmpeg_disponible = self._verificar_ffmpeg()
-        self.logger.info("✓ VideoCompilerAgent inicializado (FASE 3: REAL)")
+        self.logger.info(f"✓ VideoCompilerAgent inicializado - Videos en: {self.videos_dir}")
 
     def _verificar_ffmpeg(self) -> bool:
         """Verificar si FFmpeg está instalado"""
@@ -149,11 +150,14 @@ class VideoCompilerAgent:
         try:
             result = subprocess.run(ffmpeg_cmd, capture_output=True, text=True, timeout=120)
             if result.returncode != 0:
-                # Si falla, intentar versión aún más simple
+                self.logger.error(f"FFmpeg error: {result.stderr}")
                 self.logger.warning("Intentando modo simple...")
                 return self._compilar_simple(imagen_path, video_path, w, h, fps, bitrate, duracion)
         except subprocess.TimeoutExpired:
             raise Exception("FFmpeg timeout (>120s)")
+
+        if not video_path.exists():
+            raise Exception(f"Archivo de video no creado: {video_path}")
 
         return video_path
 
@@ -176,9 +180,15 @@ class VideoCompilerAgent:
         try:
             result = subprocess.run(ffmpeg_cmd, capture_output=True, text=True, timeout=120)
             if result.returncode != 0:
-                raise Exception(f"FFmpeg simple mode falló")
+                self.logger.error(f"FFmpeg simple mode error: {result.stderr}")
+                raise Exception(f"FFmpeg simple mode falló: {result.stderr[:200]}")
+        except subprocess.TimeoutExpired:
+            raise Exception("FFmpeg simple mode timeout")
         except Exception as e:
             raise Exception(f"No se pudo compilar video: {e}")
+
+        if not video_path.exists():
+            raise Exception(f"Archivo de video no creado (simple): {video_path}")
 
         return video_path
 
