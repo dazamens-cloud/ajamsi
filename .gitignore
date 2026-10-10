@@ -58,6 +58,9 @@ videos/*
 # imagenes/ - incluir en git (contiene recursos base)
 generadas/*
 !generadas/.gitkeep
+# Salida de los agentes: se regenera, no se versiona (11 MB el 2026-10-10)
+imagenes_generadas/*
+!imagenes_generadas/.gitkeep
 
 # Database
 *.db

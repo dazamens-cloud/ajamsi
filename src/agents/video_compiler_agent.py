@@ -61,20 +61,21 @@ class VideoCompilerAgent:
         nombre_base: str = ''
     ) -> Dict:
         """
-        Compilar video real con FFmpeg (Ken Burns + audio).
+        Compilar video real con FFmpeg (Ken Burns, SIN audio).
+        La voz se agrega manualmente en el editor del usuario.
 
         Args:
             imagen_path: Imagen base (idealmente 1080x1920)
-            guion: Texto del guion (informativo)
-            audio_path: Narración .wav (opcional; si existe manda la duración)
-            duracion: Duración en segundos si no hay audio
+            guion: Texto del guion (solo informativo, no se usa en audio)
+            audio_path: Ignorado (usuario añade voz manualmente)
+            duracion: Duración en segundos (ej: 15s para TikTok)
             formato: 'tiktok' | 'instagram' | 'youtube'
             nombre_base: Prefijo para el nombre del archivo
 
         Returns:
             Dict con 'video_path' verificado en disco
         """
-        self.logger.info(f"🎬 Compilando video ({formato}, {duracion}s)...")
+        self.logger.info(f"🎬 Compilando video ({formato}, {duracion}s, SIN audio)...")
 
         try:
             imagen_path = Path(imagen_path)
@@ -88,12 +89,8 @@ class VideoCompilerAgent:
             if not self.ffmpeg_disponible:
                 raise Exception("FFmpeg no está instalado - no se puede compilar video real")
 
-            audio = Path(audio_path) if audio_path else None
-            if audio and not audio.exists():
-                self.logger.warning(f"⚠️  Audio no encontrado, video sin narración: {audio}")
-                audio = None
-
-            video_path = self._compilar_ken_burns(imagen_path, audio, duracion, formato, specs, nombre_base)
+            # Ignorar audio_path: usuario lo agrega en su editor (CapCut, Adobe, etc)
+            video_path = self._compilar_ken_burns(imagen_path, None, duracion, formato, specs, nombre_base)
 
             size_mb = os.path.getsize(video_path) / (1024 * 1024)
             resultado = {

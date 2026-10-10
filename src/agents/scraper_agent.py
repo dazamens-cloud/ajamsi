@@ -184,28 +184,51 @@ class ScraperAgent:
         return resultado
 
     def _calcular_relevancia(self, noticia: Dict) -> float:
-        """Calcular score de relevancia (0-100)"""
+        """Calcular score de relevancia (0-100) - favoreciendo contenido ligero/divertido"""
         score = 50.0
         titulo = noticia.get('titulo', '').lower()
+        contenido = noticia.get('contenido', '').lower()
 
-        # Bonus por palabras clave locales
-        palabras_clave = {
-            'lanzarote': 20,
-            'canaria': 15,
-            'archipiélago': 10,
-            'canarias': 15,
-            'isleta': 10,
+        # Penalidades DURAS por temas serios/oscuros (filtro meme-friendly)
+        palabras_negativas = {
+            'asesinato': -60, 'muerto': -50, 'muerte': -50, 'crimen': -55,
+            'violencia': -50, 'delito': -45, 'droga': -40, 'narcotráfico': -50,
+            'accidente fatal': -40, 'homicidio': -60, 'víctima mortal': -50,
+            'enfrentamiento': -35, 'disparos': -40, 'ataque': -30,
+            'política': -25, 'congreso': -20, 'parlamento': -20,
+            'desastre': -30, 'tragedia': -40, 'catástrofe': -45,
         }
 
-        for palabra, bonus in palabras_clave.items():
-            if palabra in titulo:
+        for palabra_negativa, penalidad in palabras_negativas.items():
+            if palabra_negativa in titulo or palabra_negativa in contenido[:200]:
+                score += penalidad  # Sumar penalidad (negativa)
+
+        # BONUS por temas ligeros/divertidos (favorecidos para memes)
+        palabras_positivas = {
+            'turismo': 20, 'playa': 15, 'viaje': 15, 'evento': 18,
+            'fiesta': 20, 'festival': 22, 'carnaval': 25, 'cultura': 18,
+            'deporte': 12, 'fútbol': 10, 'equipo': 8,
+            'arte': 15, 'museo': 12, 'exposición': 15,
+            'tendencia': 15, 'viral': 18, 'meme': 25,
+            'humor': 20, 'cómico': 20, 'jocoso': 20,
+            'anécdota': 15, 'curiosidad': 15, 'inusual': 18,
+            'gastronomía': 12, 'comida': 10, 'restaurante': 10,
+            'naturaleza': 12, 'animal': 12, 'fauna': 10,
+            'lanzarote': 20, 'canaria': 15, 'archipiélago': 10,
+            'canarias': 15, 'isleta': 10,
+        }
+
+        for palabra_positiva, bonus in palabras_positivas.items():
+            if palabra_positiva in titulo:
+                score += bonus * 1.5  # 1.5x bonus en título
+            elif palabra_positiva in contenido[:200]:
                 score += bonus
 
         # Penalidad para contenido muy corto
         if len(noticia.get('contenido', '')) < 50:
             score -= 20
 
-        return max(0, min(score, 100.0))
+        return max(-100, min(score, 100.0))
 
     def _parsear_fecha(self, fecha_str: Optional[str]) -> datetime:
         """Parsear string de fecha (maneja timezone-aware y naive)"""

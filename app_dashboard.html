@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AJAMSI Dashboard</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+  color: #e0e0e0;
+  font-family: 'Courier New', monospace;
+  padding: 1rem;
+  min-height: 100vh;
+}
+.contenedor { max-width: 1400px; margin: 0 auto; }
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #7c3aed;
+}
+h1 { color: #00d4ff; font-size: 2.5rem; text-shadow: 0 0 20px rgba(0,212,255,0.5); }
+.subtitulo { color: #888; font-size: 0.9rem; margin-top: 0.5rem; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+.card {
+  background: rgba(30,30,46,0.8);
+  border: 2px solid #7c3aed;
+  border-radius: 12px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+.card:hover { border-color: #00d4ff; box-shadow: 0 0 20px rgba(0,212,255,0.2); }
+.card-titulo { color: #00d4ff; font-size: 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.card-valor { font-size: 2.5rem; font-weight: bold; color: #51cf66; }
+.card-meta { color: #888; font-size: 0.9rem; margin-top: 0.5rem; }
+
+.status-badge {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  margin: 0.25rem;
+}
+.status-ok { background: rgba(81,207,102,0.3); color: #51cf66; border: 1px solid #51cf66; }
+.status-error { background: rgba(255,107,107,0.3); color: #ff6b6b; border: 1px solid #ff6b6b; }
+.status-warning { background: rgba(255,214,10,0.3); color: #ffd60a; border: 1px solid #ffd60a; }
+.status-loading { background: rgba(124,58,237,0.3); color: #7c3aed; border: 1px solid #7c3aed; animation: pulse 1.5s infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.panel-logs {
+  background: rgba(20,20,32,0.95);
+  border: 2px solid #00d4ff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.panel-logs-titulo { color: #00d4ff; margin-bottom: 1rem; font-weight: bold; }
+.log-linea {
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(124,58,237,0.2);
+  font-size: 0.9rem;
+}
+.log-hora { color: #7c3aed; min-width: 80px; }
+.log-nivel {
+  min-width: 60px;
+  font-weight: bold;
+  padding: 0 0.5rem;
+  border-radius: 4px;
+}
+.log-info { color: #00d4ff; background: rgba(0,212,255,0.1); }
+.log-success { color: #51cf66; background: rgba(81,207,102,0.1); }
+.log-error { color: #ff6b6b; background: rgba(255,107,107,0.1); }
+.log-warn { color: #ffd60a; background: rgba(255,214,10,0.1); }
+
+.barra-progreso-contenedor {
+  width: 100%;
+  height: 30px;
+  background: rgba(20,20,32,0.8);
+  border-radius: 15px;
+  overflow: hidden;
+  border: 2px solid rgba(124,58,237,0.3);
+  margin: 1rem 0;
+}
+.barra-progreso {
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #00d4ff);
+  width: 0%;
+  transition: width 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.botones {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+button {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+  transition: all 0.2s;
+  font-size: 1rem;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #7c3aed, #00d4ff);
+  color: white;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(124,58,237,0.3); }
+.btn-secondary {
+  background: rgba(124,58,237,0.2);
+  color: #00d4ff;
+  border: 1px solid #7c3aed;
+}
+.btn-secondary:hover { background: rgba(124,58,237,0.3); }
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal.activo { display: flex; }
+.modal-contenido {
+  background: #1e1e2e;
+  border: 2px solid #7c3aed;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+}
+.modal-titulo { color: #00d4ff; margin-bottom: 1rem; }
+.modal-input {
+  width: 100%;
+  padding: 0.8rem;
+  margin: 1rem 0;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid #7c3aed;
+  border-radius: 8px;
+  color: #e0e0e0;
+  font-family: 'Courier New', monospace;
+}
+
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+.stat-mini {
+  background: rgba(124,58,237,0.1);
+  border: 1px solid #7c3aed;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+.stat-mini-label { color: #888; font-size: 0.9rem; }
+.stat-mini-valor { color: #00d4ff; font-size: 1.8rem; font-weight: bold; margin: 0.5rem 0; }
+</style>
+</head>
+<body>
+
+<div class="contenedor">
+  <header>
+    <h1>🎬 AJAMSI Dashboard</h1>
+    <p class="subtitulo">Monitor en tiempo real del pipeline de contenido</p>
+  </header>
+
+  <!-- Estado del sistema -->
+  <div class="grid">
+    <div class="card">
+      <div class="card-titulo">🔧 Estado del Sistema</div>
+      <div id="status-sistema" class="status-badge status-loading">Verificando...</div>
+    </div>
+    <div class="card">
+      <div class="card-titulo">📡 Conexión API</div>
+      <div id="status-api" class="status-badge status-loading">Verificando...</div>
+    </div>
+    <div class="card">
+      <div class="card-titulo">⚙️ Estado del Pipeline</div>
+      <div id="status-pipeline" class="status-badge status-loading">Inactivo</div>
+    </div>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="card">
+    <div class="card-titulo">📊 Estadísticas</div>
+    <div class="stats-row">
+      <div class="stat-mini">
+        <div class="stat-mini-label">Noticias Procesadas</div>
+        <div class="stat-mini-valor" id="stat-noticias">0</div>
+      </div>
+      <div class="stat-mini">
+        <div class="stat-mini-label">Imágenes Generadas</div>
+        <div class="stat-mini-valor" id="stat-imagenes">0</div>
+      </div>
+      <div class="stat-mini">
+        <div class="stat-mini-label">Videos Generados</div>
+        <div class="stat-mini-valor" id="stat-videos">0</div>
+      </div>
+      <div class="stat-mini">
+        <div class="stat-mini-label">Tiempo Promedio</div>
+        <div class="stat-mini-valor" id="stat-tiempo">--</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Control del Pipeline -->
+  <div class="card">
+    <div class="card-titulo">🎮 Control del Pipeline</div>
+
+    <div style="margin: 1.5rem 0;">
+      <label for="select-modo" style="color: #00d4ff; margin-right: 1rem;">Modo:</label>
+      <select id="select-modo" style="padding: 0.5rem; border-radius: 6px; background: rgba(0,0,0,0.3); color: #00d4ff; border: 1px solid #7c3aed;">
+        <option value="imagen">📷 Solo Imágenes (Recomendado)</option>
+        <option value="video">🎬 Imágenes + Videos</option>
+      </select>
+    </div>
+
+    <div id="barra-progreso-contenedor" class="barra-progreso-contenedor" style="display: none;">
+      <div id="barra-progreso" class="barra-progreso" style="width: 0%;">0%</div>
+    </div>
+
+    <div id="paso-actual" style="color: #7c3aed; margin: 1rem 0; min-height: 20px;">
+      Esperando comando...
+    </div>
+
+    <div class="botones">
+      <button class="btn-primary" onclick="iniciarPipeline()">▶️ Iniciar Pipeline</button>
+      <button class="btn-secondary" onclick="detenerPipeline()">⏹️ Detener</button>
+      <button class="btn-secondary" onclick="abrirCarpeta()">📂 Abrir /videos/</button>
+      <button class="btn-secondary" onclick="reiniciarSistema()">🔄 Reiniciar</button>
+    </div>
+  </div>
+
+  <!-- Logs en tiempo real -->
+  <div class="panel-logs">
+    <div class="panel-logs-titulo">📋 Logs en Tiempo Real</div>
+    <div id="logs-contenedor" style="font-size: 0.85rem;"></div>
+  </div>
+
+  <!-- Últimos resultados -->
+  <div class="card">
+    <div class="card-titulo">✅ Últimos Resultados</div>
+    <div id="ultimos-resultados" style="max-height: 300px; overflow-y: auto;">
+      <p style="color: #888;">Sin resultados aún...</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmación -->
+<div id="modal-confirmar" class="modal">
+  <div class="modal-contenido">
+    <div class="modal-titulo">⚠️ Confirmar</div>
+    <p id="modal-mensaje" style="margin-bottom: 1.5rem;"></p>
+    <div style="display: flex; gap: 1rem;">
+      <button class="btn-secondary" onclick="cerrarModal()" style="flex: 1;">Cancelar</button>
+      <button class="btn-primary" id="modal-confirmar-btn" style="flex: 1;">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let pipelineActivo = false;
+let estadisticas = {
+  noticias: 0,
+  imagenes: 0,
+  videos: 0,
+  tiempoPromedio: 0
+};
+
+// ========== Utilidades ==========
+function $(id) { return document.getElementById(id); }
+
+function agregarLog(nivel, mensaje) {
+  const ahora = new Date();
+  const hora = ahora.toLocaleTimeString('es-ES');
+
+  const div = document.createElement('div');
+  div.className = 'log-linea';
+
+  let nivelClass = 'log-info';
+  if (nivel === 'ERROR') nivelClass = 'log-error';
+  else if (nivel === 'OK') nivelClass = 'log-success';
+  else if (nivel === 'WARN') nivelClass = 'log-warn';
+
+  div.innerHTML = `
+    <span class="log-hora">${hora}</span>
+    <span class="log-nivel ${nivelClass}">${nivel}</span>
+    <span>${mensaje}</span>
+  `;
+
+  const cont = $('logs-contenedor');
+  cont.insertBefore(div, cont.firstChild);
+
+  // Mantener solo los últimos 50 logs
+  while (cont.children.length > 50) {
+    cont.removeChild(cont.lastChild);
+  }
+}
+
+function mostrarModal(mensaje, callback) {
+  $('modal-mensaje').textContent = mensaje;
+  $('modal-confirmar-btn').onclick = callback;
+  $('modal-confirmar').classList.add('activo');
+}
+
+function cerrarModal() {
+  $('modal-confirmar').classList.remove('activo');
+}
+
+function actualizarStatus(elemento, estado, mensaje) {
+  const badge = $(elemento);
+  badge.textContent = mensaje;
+  badge.className = `status-badge status-${estado}`;
+}
+
+// ========== API Calls ==========
+async function verificarSistema() {
+  try {
+    const res = await fetch(API + '/api/healthcheck').then(r => r.json());
+    actualizarStatus('status-sistema', 'ok', '✅ OK');
+    actualizarStatus('status-api', 'ok', '✅ Conectado');
+    agregarLog('OK', 'Sistema verificado correctamente');
+  } catch (e) {
+    actualizarStatus('status-sistema', 'error', '❌ Error');
+    actualizarStatus('status-api', 'error', '❌ Sin conexión');
+    agregarLog('ERROR', `Error verificando sistema: ${e.message}`);
+  }
+}
+
+async function iniciarPipeline() {
+  if (pipelineActivo) {
+    agregarLog('WARN', 'Pipeline ya está en ejecución');
+    return;
+  }
+
+  const modo = $('select-modo').value;
+  actualizarStatus('status-pipeline', 'loading', '▶️ En ejecución...');
+  pipelineActivo = true;
+
+  try {
+    agregarLog('INFO', `Iniciando pipeline (modo: ${modo})...`);
+    $('barra-progreso-contenedor').style.display = 'block';
+
+    const url = modo === 'video' ? '/api/run-all?modo=video' : '/api/run-all';
+    const res = await fetch(API + url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}'
+    }).then(r => r.json());
+
+    if (res.status !== 'loading') throw new Error(res.error || 'Error iniciando pipeline');
+
+    agregarLog('OK', 'Pipeline iniciado');
+
+    // Poll estado
+    let contador = 0;
+    const pollInterval = setInterval(async () => {
+      try {
+        const st = await fetch(API + '/api/state').then(r => r.json());
+        const p = st.progress || {};
+
+        if (p.porcentaje) {
+          $('barra-progreso').style.width = p.porcentaje + '%';
+          $('barra-progreso').textContent = p.porcentaje + '%';
+        }
+
+        if (p.paso) {
+          $('paso-actual').textContent = `${p.paso} ${p.detalle ? '— ' + p.detalle : ''}`;
+        }
+
+        if (!p.activo && st.resultado_final) {
+          clearInterval(pollInterval);
+          mostrarResultados(st.resultado_final);
+          pipelineActivo = false;
+          actualizarStatus('status-pipeline', 'ok', '✅ Completado');
+        } else if (!p.activo && st.status === 'error') {
+          clearInterval(pollInterval);
+          agregarLog('ERROR', st.error || 'Error en pipeline');
+          pipelineActivo = false;
+          actualizarStatus('status-pipeline', 'error', '❌ Error');
+        }
+      } catch (e) { /* retry */ }
+
+      contador++;
+      if (contador > 600) { // 10 min timeout
+        clearInterval(pollInterval);
+        pipelineActivo = false;
+      }
+    }, 1000);
+
+  } catch (e) {
+    agregarLog('ERROR', e.message);
+    pipelineActivo = false;
+    actualizarStatus('status-pipeline', 'error', '❌ Error');
+  }
+}
+
+async function detenerPipeline() {
+  pipelineActivo = false;
+  actualizarStatus('status-pipeline', 'ok', '⏹️ Detenido');
+  agregarLog('INFO', 'Pipeline detenido');
+}
+
+async function abrirCarpeta() {
+  try {
+    await fetch(API + '/api/open-folder', { method: 'POST' });
+    agregarLog('OK', 'Carpeta /videos/ abierta');
+  } catch (e) {
+    agregarLog('ERROR', `No se pudo abrir carpeta: ${e.message}`);
+  }
+}
+
+async function reiniciarSistema() {
+  mostrarModal('¿Reiniciar el sistema? Se limpiarán todos los datos temporales.', async () => {
+    cerrarModal();
+    try {
+      await fetch(API + '/api/reset', { method: 'POST' });
+      agregarLog('OK', 'Sistema reiniciado');
+      location.reload();
+    } catch (e) {
+      agregarLog('ERROR', `Error reiniciando: ${e.message}`);
+    }
+  });
+}
+
+function mostrarResultados(rf) {
+  const cont = $('ultimos-resultados');
+  let html = `
+    <div style="background: rgba(81,207,102,0.1); border: 1px solid #51cf66; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+      <strong style="color: #51cf66;">✅ Pipeline completado</strong><br>
+      Imágenes: <strong>${rf.imagenes_generadas || 0}</strong> | Videos: <strong>${rf.videos_generados || 0}</strong>
+  `;
+  if (rf.doc_path) {
+    html += `<br>📄 <strong>${rf.doc_path.split('\\').pop()}</strong>`;
+  }
+  html += `</div>`;
+
+  if (rf.items && rf.items.length) {
+    html += '<div style="color: #888; font-size: 0.9rem;">';
+    rf.items.slice(0, 5).forEach((item, i) => {
+      html += `
+        <div style="margin: 0.5rem 0; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 4px;">
+          ${i + 1}. <strong>${item.titulo}</strong><br>
+          📷 ${item.imagen_filename || 'N/A'}
+          ${item.video_filename ? `| 🎬 ${item.video_filename}` : ''}
+        </div>
+      `;
+    });
+    html += '</div>';
+  }
+
+  cont.innerHTML = html;
+
+  // Actualizar stats
+  estadisticas.imagenes += rf.imagenes_generadas || 0;
+  estadisticas.videos += rf.videos_generados || 0;
+  actualizarEstadisticas();
+}
+
+function actualizarEstadisticas() {
+  $('stat-imagenes').textContent = estadisticas.imagenes;
+  $('stat-videos').textContent = estadisticas.videos;
+}
+
+// ========== Init ==========
+async function inicializarOrquestador() {
+  try {
+    agregarLog('INFO', 'Inicializando orquestador...');
+    const res = await fetch(API + '/api/init').then(r => r.json());
+    if (res.status === 'success') {
+      agregarLog('OK', 'Orquestador inicializado ✓');
+      return true;
+    }
+  } catch (e) {
+    agregarLog('WARN', `Orquestador: ${e.message}`);
+  }
+  return false;
+}
+
+window.addEventListener('load', async () => {
+  agregarLog('INFO', '🚀 Dashboard iniciado');
+  await verificarSistema();
+  await inicializarOrquestador();
+  setInterval(verificarSistema, 30000); // Verificar cada 30s
+});
+</script>
+
+</body>
+</html>

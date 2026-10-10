@@ -60,13 +60,14 @@ class IdeaGeneratorAgent:
 
             ideas = []
 
-            # TODO: Integrar con Claude API para generación real
-            # Por ahora, mock ideas
             for i in range(num_ideas):
+                setup, remate = self._generar_chiste_canario(titulo, contenido, i)
                 idea = {
                     'id': f"idea_{datetime.now().timestamp()}_{i}",
                     'noticia_id': noticia.get('id'),
                     'concepto': self._generar_concepto(titulo, i),
+                    'setup': setup,
+                    'remate': remate,
                     'angulo_humor': self._seleccionar_humor(i),
                     'descripcion': self._generar_descripcion(titulo, i),
                     'palabras_clave': self._extraer_palabras_clave(titulo),
@@ -94,6 +95,56 @@ class IdeaGeneratorAgent:
                 'error': str(e),
                 'ideas': [],
             }
+
+    # Expresiones y referencias canarias para los chistes (estilo @hummorkana)
+    SETUPS_CANARIOS = [
+        "CHACHO, {tema}",
+        "ÑOS, {tema}",
+        "AGÜITA CON {tema}",
+        "XIOS, {tema}",
+        "MI NIÑO, {tema}",
+    ]
+
+    REMATES_CANARIOS = [
+        "MÁS CONTENTO QUE CHICHARRERO EN LOS CARNAVALES",
+        "ESO SÍ QUE ES UN PUNTAZO, MI NIÑO",
+        "NI EL GOFIO LEVANTA TANTO EL ÁNIMO",
+        "MÁS ORGULLOSO QUE ABUELA CON SUS PAPAS ARRUGADAS",
+        "ESTO SE CELEBRA CON UN BARRAQUITO",
+        "MÁS FELIZ QUE TURISTA EN EL TEIDE",
+        "HASTA LA CABRA LO ESTÁ CELEBRANDO",
+        "MÁS RÁPIDO QUE GUAGUA CUESTA ABAJO",
+    ]
+
+    REMATES_QUEJA = [
+        "MÁS APRETADO QUE SARDINA EN LATA... Y SIN MOJO",
+        "ME DERRITO MÁS RÁPIDO QUE QUESO EN SANCOCHO",
+        "NI CON TRES BARRAQUITOS ME LEVANTO YO DE ESTA",
+        "MÁS PERDIDO QUE TURISTA SIN GUAGUA",
+        "ESTO NO LO ARREGLA NI EL GOFIO",
+        "MÁS LENTO QUE LA COLA DEL FEROBUS",
+        "AGÜITA, Y LUEGO DICEN QUE EXAGERAMOS",
+    ]
+
+    PALABRAS_NEGATIVAS = ['crisis', 'violencia', 'problema', 'denuncia', 'critica',
+                          'dimisión', 'irresponsable', 'exigen', 'avisa', 'no es posible',
+                          'falta', 'retraso', 'queja', 'polémica']
+
+    def _generar_chiste_canario(self, titulo: str, contenido: str, numero: int) -> tuple:
+        """Generar setup + remate estilo humor canario según el tono de la noticia"""
+        # Tema condensado del titular (primeras palabras significativas)
+        palabras = [p for p in titulo.split() if len(p) > 3][:6]
+        tema = ' '.join(palabras) if palabras else titulo[:40]
+
+        setup_plantilla = self.SETUPS_CANARIOS[(hash(titulo) + numero) % len(self.SETUPS_CANARIOS)]
+        setup = setup_plantilla.format(tema=tema.upper())
+
+        # Tono: celebración o queja según el titular
+        es_negativa = any(p in titulo.lower() for p in self.PALABRAS_NEGATIVAS)
+        remates = self.REMATES_QUEJA if es_negativa else self.REMATES_CANARIOS
+        remate = remates[(hash(titulo) + numero) % len(remates)]
+
+        return setup, remate
 
     def _generar_concepto(self, titulo: str, numero: int) -> str:
         """Generar concepto de meme basado en título"""

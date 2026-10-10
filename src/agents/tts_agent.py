@@ -48,61 +48,35 @@ class TTSAgent:
 
     def ejecutar(self, texto: str, velocidad: int = 165) -> Dict:
         """
-        Generar archivo de audio con la narración.
+        NO genera audio. Solo devuelve la descripción del guion para que
+        el usuario agregue la voz manualmente (ej: CapCut, Adobe Premiere).
 
         Args:
-            texto: Texto a narrar
-            velocidad: Palabras por minuto (150-180 natural)
+            texto: Texto a narrar (se guarda solo en el documento Word)
+            velocidad: Ignorado (era para pyttsx3)
 
         Returns:
-            Dict con 'audio_path' y 'duracion_estimada'
+            Dict con 'guion_narrado' (texto) y 'duracion_estimada'
         """
-        if not self.disponible:
-            return {'status': 'skip', 'audio_path': None,
-                    'advertencia': 'pyttsx3 no disponible'}
-
         try:
-            import pyttsx3
-            self.logger.info(f"🎙️  Generando narración ({len(texto)} caracteres)...")
+            self.logger.info(f"📝 Preparando guion para narración manual ({len(texto)} caracteres)...")
 
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
-            audio_path = self.output_dir / f"narracion_{timestamp}.wav"
-
-            # pyttsx3 en Windows necesita un engine nuevo por llamada
-            # cuando se usa save_to_file repetidamente desde threads
-            engine = pyttsx3.init()
-            engine.setProperty('rate', velocidad)
-            engine.setProperty('volume', 1.0)
-            tiene_es = self._seleccionar_voz_espanola(engine)
-            if not tiene_es:
-                self.logger.warning("⚠️  No hay voz en español, usando voz por defecto")
-
-            engine.save_to_file(texto, str(audio_path))
-            engine.runAndWait()
-            try:
-                engine.stop()
-            except Exception:
-                pass
-
-            if not audio_path.exists() or audio_path.stat().st_size < 1000:
-                raise Exception("El archivo de audio no se generó correctamente")
-
-            # Estimar duración: ~velocidad palabras/min
+            # Estimar duración: ~165 palabras/min natural
             num_palabras = len(texto.split())
-            duracion_estimada = max(5, round((num_palabras / velocidad) * 60) + 1)
+            duracion_estimada = max(5, round((num_palabras / 165) * 60) + 1)
 
-            self.logger.info(f"✅ Narración generada: {audio_path.name} (~{duracion_estimada}s)")
+            self.logger.info(f"✅ Guion listo: (~{duracion_estimada}s) - Tú añades la voz en tu editor")
             return {
                 'status': 'success',
-                'audio_path': str(audio_path),
-                'audio_filename': audio_path.name,
+                'guion_narrado': texto,
                 'duracion_estimada': duracion_estimada,
-                'voz_espanola': tiene_es,
+                'audio_path': None,  # No hay archivo de audio
+                'nota': 'Agrega la voz manualmente en tu editor (CapCut, Adobe, etc)'
             }
 
         except Exception as e:
-            self.logger.error(f"❌ Error generando narración: {e}")
-            return {'status': 'error', 'error': str(e), 'audio_path': None}
+            self.logger.error(f"❌ Error preparando guion: {e}")
+            return {'status': 'error', 'error': str(e), 'guion_narrado': None}
 
     def construir_guion(self, noticia: Dict, idea: Dict = None) -> str:
         """Construir el guion de narración a partir de la noticia"""

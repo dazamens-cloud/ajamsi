@@ -83,19 +83,27 @@ class PublicacionReporterAgent:
                 doc.add_paragraph(c, style='List Bullet')
             doc.add_paragraph()
 
-            # Un bloque por video
+            # Un bloque por imagen
             for i, r in enumerate(resultados, 1):
                 noticia = r.get('noticia', {})
                 idea = r.get('idea', {})
                 captions = r.get('captions', [])
                 video = r.get('video', {})
+                imagen = r.get('imagen', {})
+                audio = r.get('audio', {}) or {}
 
-                doc.add_heading(f"🎥 VIDEO {i}: {noticia.get('titulo', 'Sin título')[:80]}", level=1)
+                doc.add_heading(f"🖼️ CONTENIDO {i}: {noticia.get('titulo', 'Sin título')[:80]}", level=1)
 
-                # Archivo
+                # Archivo de imagen
                 p = doc.add_paragraph()
-                p.add_run("Archivo: ").bold = True
-                p.add_run(video.get('video_filename', 'N/A'))
+                p.add_run("Imagen: ").bold = True
+                p.add_run(imagen.get('imagen_filename', 'N/A'))
+
+                # Video si existe
+                if video:
+                    p = doc.add_paragraph()
+                    p.add_run("Video: ").bold = True
+                    p.add_run(video.get('video_filename', 'N/A'))
 
                 p = doc.add_paragraph()
                 p.add_run("Fuente noticia: ").bold = True
@@ -104,6 +112,23 @@ class PublicacionReporterAgent:
                 p = doc.add_paragraph()
                 p.add_run("Ángulo de humor: ").bold = True
                 p.add_run(idea.get('angulo_humor', 'N/A'))
+
+                # NARRACIÓN: Guion para que el usuario lo añada manualmente
+                doc.add_heading("🎙️ NARRACIÓN (Copia este texto en tu editor)", level=2)
+                guion_p = doc.add_paragraph()
+                guion_text = audio.get('guion_narrado', '') or 'Sin guion'
+                guion_run = guion_p.add_run(guion_text)
+                guion_run.font.italic = True
+                guion_run.font.size = Pt(11)
+                guion_run.font.color.rgb = RGBColor(80, 80, 80)
+
+                duracion_p = doc.add_paragraph()
+                dur_run = duracion_p.add_run(
+                    f"Duración estimada: ~{audio.get('duracion_estimada', 15)}s (a ritmo natural)"
+                )
+                dur_run.font.size = Pt(9)
+                dur_run.font.italic = True
+                dur_run.font.color.rgb = RGBColor(120, 120, 120)
 
                 # Caption recomendado (mayor engagement)
                 mejor = max(captions, key=lambda c: c.get('engagement_score', 0)) if captions else None

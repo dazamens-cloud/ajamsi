@@ -5,12 +5,14 @@ API para ejecutar el pipeline de manera interactiva
 
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+from werkzeug.utils import secure_filename
 import sys
 import os
 from pathlib import Path
 import json
 import threading
 from datetime import datetime
+import tempfile
 
 # Windows: evitar crashes de cp1252 al imprimir emojis en consola
 if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
@@ -56,14 +58,25 @@ VIDEOS_DIR = Path(__file__).parent / "videos"
 
 @app.route('/')
 def index():
-    """Sirve la interfaz web"""
+    """Sirve el dashboard principal"""
+    try:
+        html_path = Path(__file__).parent / 'app_dashboard.html'
+        with open(html_path, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        return html_content, 200, {'Content-Type': 'text/html; charset=utf-8'}
+    except Exception as e:
+        return f"<h1>Error cargando dashboard: {e}</h1>", 500
+
+@app.route('/studio')
+def studio():
+    """Interfaz PWA original (editor de detalles)"""
     try:
         html_path = Path(__file__).parent / 'app_frontend.html'
         with open(html_path, 'r', encoding='utf-8') as f:
             html_content = f.read()
         return html_content, 200, {'Content-Type': 'text/html; charset=utf-8'}
     except Exception as e:
-        return f"<h1>Error cargando HTML: {e}</h1>", 500
+        return f"<h1>Error cargando PWA: {e}</h1>", 500
 
 @app.route('/api/init', methods=['GET'])
 def init_system():
@@ -311,7 +324,12 @@ def phase3_correct():
 
 @app.route('/api/run-all', methods=['POST'])
 def run_all():
-    """PIPELINE COMPLETO: procesa todas las noticias seleccionadas de principio a fin"""
+    """PIPELINE: procesa todas las noticias seleccionadas
+
+    Query params:
+    - modo: 'imagen' (default) = solo imágenes
+    - modo: 'video' = genera videos también
+    """
     if not orquestador:
         return jsonify({'status': 'error', 'error': 'Orquestador no inicializado'}), 400
 
@@ -321,6 +339,8 @@ def run_all():
     if state['progress']['activo']:
         return jsonify({'status': 'error', 'error': 'Ya hay un pipeline en ejecución'}), 400
 
+    modo = request.args.get('modo', 'imagen').lower()
+    generar_video = modo == 'video'
     noticias = [state['noticias'][i] for i in indices]
 
     def progreso_cb(pct, paso, detalle):
@@ -342,12 +362,13 @@ def run_all():
             state['error'] = None
             state['resultado_final'] = None
 
-            resultado = orquestador.ejecutar_pipeline_completo(noticias, progreso_cb)
+            resultado = orquestador.ejecutar_pipeline_completo(noticias, progreso_cb, generar_video)
 
             # Serializar resultado (sin objetos no serializables)
             state['resultado_final'] = {
                 'status': resultado['status'],
-                'videos_generados': resultado['videos_generados'],
+                'imagenes_generadas': resultado.get('imagenes_generadas', 0),
+                'videos_generados': resultado.get('videos_generados', 0),
                 'doc_path': resultado['doc_path'],
                 'errores': resultado['errores'],
                 'items': [
@@ -358,6 +379,7 @@ def run_all():
                         'tamaño_mb': (r.get('video') or {}).get('tamaño_mb'),
                         'duracion': (r.get('video') or {}).get('duracion_segundos'),
                         'imagen_filename': (r.get('imagen') or {}).get('imagen_filename'),
+                        'imagen_path': (r.get('imagen') or {}).get('imagen_path'),
                         'caption_recomendado': max(
                             r.get('captions', []),
                             key=lambda c: c.get('engagement_score', 0)
@@ -370,8 +392,8 @@ def run_all():
             state['status'] = 'ready'
             state['timestamp'] = datetime.now().isoformat()
 
-            # Abrir carpeta de videos automáticamente (Windows)
-            if resultado['videos_generados'] > 0:
+            # Abrir carpeta automáticamente (Windows)
+            if resultado.get('imagenes_generadas', 0) > 0:
                 try:
                     os.startfile(str(VIDEOS_DIR))
                 except Exception as e:
@@ -380,16 +402,17 @@ def run_all():
         except Exception as e:
             state['error'] = str(e)
             state['status'] = 'error'
-            print(f"❌ Error en pipeline completo: {e}")
+            print(f"❌ Error en pipeline: {e}")
         finally:
             state['progress']['activo'] = False
 
     thread = threading.Thread(target=run_pipeline)
     thread.start()
 
+    msg_modo = "solo imágenes" if not generar_video else "imágenes + videos"
     return jsonify({
         'status': 'loading',
-        'message': f'Pipeline completo iniciado para {len(noticias)} noticias...'
+        'message': f'Pipeline iniciado ({msg_modo}) para {len(noticias)} noticias...'
     })
 
 @app.route('/api/open-folder', methods=['POST'])
@@ -511,6 +534,70 @@ def reset():
 def health():
     """Health check"""
     return jsonify({'status': 'ok', 'timestamp': datetime.now().isoformat()})
+
+@app.route('/api/composite-image', methods=['POST'])
+def composite_image():
+    """Recibir imagen meme + componer El Típico Canario en posición elegida"""
+    if not orquestador:
+        return jsonify({'status': 'error', 'error': 'Orquestador no inicializado'}), 400
+
+    try:
+        # Verificar archivo
+        if 'imagen' not in request.files:
+            return jsonify({'status': 'error', 'error': 'No se envió imagen'}), 400
+
+        archivo = request.files['imagen']
+        if archivo.filename == '':
+            return jsonify({'status': 'error', 'error': 'Archivo vacío'}), 400
+
+        # Parámetros opcionales
+        posicion = request.form.get('posicion', 'derecha')
+        escala = float(request.form.get('escala', 0.45))
+
+        # Validar parámetros
+        if posicion not in ['izquierda', 'derecha', 'centro', 'arriba', 'abajo']:
+            posicion = 'derecha'
+        if escala < 0.2 or escala > 0.8:
+            escala = 0.45
+
+        # Guardar archivo temporalmente
+        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+            archivo.save(tmp.name)
+            tmp_path = tmp.name
+
+        try:
+            # Componer imagen
+            resultado = orquestador.image_compositor.ejecutar(
+                imagen_path=tmp_path,
+                posicion=posicion,
+                escala=escala
+            )
+
+            if resultado.get('status') != 'success':
+                return jsonify({
+                    'status': 'error',
+                    'error': resultado.get('error', 'Error desconocido')
+                }), 400
+
+            # Devolver info de la imagen generada
+            return jsonify({
+                'status': 'success',
+                'imagen_filename': resultado.get('imagen_filename'),
+                'imagen_path': resultado.get('imagen_path'),
+                'posicion': posicion,
+                'escala': escala,
+                'mensaje': f'Imagen compuesta con El Típico ({posicion})'
+            })
+
+        finally:
+            # Limpiar temporal
+            try:
+                os.unlink(tmp_path)
+            except:
+                pass
+
+    except Exception as e:
+        return jsonify({'status': 'error', 'error': str(e)}), 500
 
 if __name__ == '__main__':
     print("\n" + "="*70)

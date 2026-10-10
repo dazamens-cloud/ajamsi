@@ -14,6 +14,7 @@ from agents.ollama_prompt_engineer_agent import OllamaPromptEngineerAgent
 from agents.caption_writer_agent import CaptionWriterAgent
 from agents.video_compiler_agent import VideoCompilerAgent
 from agents.image_generator_agent import ImageGeneratorAgent
+from agents.image_compositor_agent import ImageCompositorAgent
 from agents.tts_agent import TTSAgent
 from agents.publicacion_reporter_agent import PublicacionReporterAgent
 from utils.config_loader import ConfigLoader
@@ -58,6 +59,7 @@ class AgentOrchestrator:
             self.caption_writer = CaptionWriterAgent(self.config)
             self.video_compiler = VideoCompilerAgent(self.config)
             self.image_generator = ImageGeneratorAgent(self.config)
+            self.image_compositor = ImageCompositorAgent(self.config)
             self.tts = TTSAgent(self.config)
             self.reporter = PublicacionReporterAgent(self.config)
 
@@ -259,14 +261,21 @@ class AgentOrchestrator:
                 'video_path': None
             }
 
-    def ejecutar_pipeline_completo(self, noticias: List[Dict], progreso_cb=None) -> Dict:
+    def ejecutar_pipeline_completo(self, noticias: List[Dict], progreso_cb=None,
+                                   generar_video: bool = False) -> Dict:
         """
-        Pipeline COMPLETO por cada noticia seleccionada:
-        idea -> captions -> imagen -> narración TTS -> video -> documento Word
+        Pipeline flexible por cada noticia seleccionada:
+
+        Modo por defecto (generar_video=False):
+          idea -> captions -> imagen -> documento Word (solo imágenes)
+
+        Modo completo (generar_video=True):
+          idea -> captions -> imagen -> guion -> video -> documento Word
 
         Args:
             noticias: Lista de noticias seleccionadas
             progreso_cb: callback(porcentaje, paso, detalle) para reportar progreso
+            generar_video: Si True, compila videos; si False, solo imágenes
 
         Returns:
             Dict con 'resultados' (uno por noticia), 'doc_path' y 'errores'
@@ -282,8 +291,8 @@ class AgentOrchestrator:
         resultados = []
         errores = []
         total = len(noticias)
-        # 5 pasos por noticia + 1 paso final (documento)
-        pasos_totales = total * 5 + 1
+        # 4 pasos base por noticia + (1 para video si aplica) + 1 final (documento)
+        pasos_base = total * 4 + (total * 1 if generar_video else 0) + 1
         paso_actual = 0
 
         for i, noticia in enumerate(noticias, 1):
@@ -294,7 +303,7 @@ class AgentOrchestrator:
             try:
                 # 1. Idea
                 paso_actual += 1
-                reportar(int(paso_actual / pasos_totales * 100),
+                reportar(int(paso_actual / pasos_base * 100),
                          f"💡 Generando idea ({i}/{total})", titulo_corto)
                 ideas_res = self.idea_generator.ejecutar(noticia=noticia, num_ideas=2)
                 ideas = ideas_res.get('ideas', [])
@@ -304,14 +313,14 @@ class AgentOrchestrator:
 
                 # 2. Captions
                 paso_actual += 1
-                reportar(int(paso_actual / pasos_totales * 100),
+                reportar(int(paso_actual / pasos_base * 100),
                          f"✍️ Generando captions ({i}/{total})", titulo_corto)
                 captions_res = self.caption_writer.ejecutar(idea=item['idea'], num_captions=3)
                 item['captions'] = captions_res.get('captions', [])
 
                 # 3. Imagen (tarjeta meme)
                 paso_actual += 1
-                reportar(int(paso_actual / pasos_totales * 100),
+                reportar(int(paso_actual / pasos_base * 100),
                          f"🖼️ Generando imagen ({i}/{total})", titulo_corto)
                 hook = item['captions'][0].get('caption', '') if item['captions'] else ''
                 imagen_res = self.image_generator.ejecutar(
@@ -320,54 +329,59 @@ class AgentOrchestrator:
                     raise Exception(f"Imagen falló: {imagen_res.get('error')}")
                 item['imagen'] = imagen_res
 
-                # 4. Narración TTS
+                # 4. Guion + opcionalmente video
                 paso_actual += 1
-                reportar(int(paso_actual / pasos_totales * 100),
-                         f"🎙️ Generando narración ({i}/{total})", titulo_corto)
                 guion = self.tts.construir_guion(noticia, item['idea'])
                 audio_res = self.tts.ejecutar(guion)
                 item['audio'] = audio_res
-                audio_path = audio_res.get('audio_path')
-                duracion = audio_res.get('duracion_estimada', 15) or 15
 
-                # 5. Video
-                paso_actual += 1
-                reportar(int(paso_actual / pasos_totales * 100),
-                         f"🎬 Compilando video ({i}/{total})", titulo_corto)
-                video_res = self.video_compiler.ejecutar(
-                    imagen_path=imagen_res['imagen_path'],
-                    guion=guion,
-                    audio_path=audio_path,
-                    duracion=min(duracion, 60),
-                    formato='tiktok',
-                    nombre_base=f"noticia{i}"
-                )
-                if video_res.get('status') != 'success':
-                    raise Exception(f"Video falló: {video_res.get('error')}")
-                item['video'] = video_res
+                # 5. Video (solo si generar_video=True)
+                if generar_video:
+                    paso_actual += 1
+                    reportar(int(paso_actual / pasos_base * 100),
+                             f"🎬 Compilando video ({i}/{total})", titulo_corto)
+                    audio_path = audio_res.get('audio_path')
+                    duracion = audio_res.get('duracion_estimada', 15) or 15
+                    video_res = self.video_compiler.ejecutar(
+                        imagen_path=imagen_res['imagen_path'],
+                        guion=guion,
+                        audio_path=audio_path,
+                        duracion=min(duracion, 60),
+                        formato='tiktok',
+                        nombre_base=f"noticia{i}"
+                    )
+                    if video_res.get('status') != 'success':
+                        raise Exception(f"Video falló: {video_res.get('error')}")
+                    item['video'] = video_res
+                else:
+                    reportar(int(paso_actual / pasos_base * 100),
+                             f"🖼️ Listo para editar en TikTok Studio ({i}/{total})", titulo_corto)
 
                 resultados.append(item)
 
             except Exception as e:
                 logger.error(f"❌ Error procesando noticia {i}: {e}")
                 errores.append({'noticia': titulo_corto, 'error': str(e)})
-                if item.get('video') is None:
-                    resultados.append(item)  # guardar lo que se logró para el reporte
+                resultados.append(item)  # guardar lo que se logró para el reporte
 
         # Documento Word final
         paso_actual += 1
-        reportar(int(paso_actual / pasos_totales * 100),
+        reportar(int(paso_actual / pasos_base * 100),
                  "📄 Generando guía de publicación", "Word con captions y hashtags")
-        con_video = [r for r in resultados if r.get('video')]
-        doc_res = self.reporter.ejecutar(con_video) if con_video else {'doc_path': None}
+        con_contenido = [r for r in resultados if r.get('imagen')]
+        doc_res = self.reporter.ejecutar(con_contenido) if con_contenido else {'doc_path': None}
+
+        videos_generados = len([r for r in resultados if r.get('video')])
+        imagenes_generadas = len(con_contenido)
 
         reportar(100, "✅ Pipeline completado",
-                 f"{len(con_video)}/{total} videos generados")
+                 f"{imagenes_generadas} imágenes, {videos_generados} videos")
 
         return {
-            'status': 'success' if con_video else 'error',
+            'status': 'success' if con_contenido else 'error',
             'resultados': resultados,
-            'videos_generados': len(con_video),
+            'imagenes_generadas': imagenes_generadas,
+            'videos_generados': videos_generados,
             'doc_path': doc_res.get('doc_path'),
             'errores': errores,
         }

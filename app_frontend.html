@@ -42,6 +42,36 @@ h1 { color: var(--cian); margin: 0; font-size: 2rem; }
 .panel h2 { color: var(--cian); margin: 0 0 0.8rem 0; font-size: 1.2rem; }
 .oculto { display: none !important; }
 
+/* Modal Compositor */
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+.modal-contenido { background: var(--panel); border: 2px solid var(--cian); border-radius: 12px; padding: 1.5rem; max-width: 900px; width: 95%; max-height: 90vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.modal-header h2 { margin: 0; color: var(--cian); }
+.cerrar { background: var(--rojo); width: 40px; height: 40px; padding: 0; font-size: 1.5rem; }
+
+.compositor-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+@media (max-width: 768px) { .compositor-grid { grid-template-columns: 1fr; } }
+
+.drop-zona { border: 3px dashed var(--cian); border-radius: 8px; padding: 2rem; text-align: center; cursor: pointer; background: rgba(0,212,255,0.05); transition: all .2s; }
+.drop-zona:hover { background: rgba(0,212,255,0.1); border-color: var(--amarillo); }
+.drop-zona.activo { background: rgba(0,212,255,0.2); border-color: var(--verde); }
+
+.preview { max-width: 100%; border-radius: 8px; border: 2px solid var(--morado); }
+.preview-grande { max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px; border: 2px solid var(--cian); }
+
+.control-grupo { margin-bottom: 1rem; }
+.control-grupo label { display: block; margin-bottom: 0.5rem; color: var(--amarillo); font-weight: 600; }
+.control-grupo input[type="range"] { width: 100%; }
+.botones-posicion { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; }
+.pos-btn { padding: 0.6rem; font-size: 0.9rem; background: var(--panel2); border: 1px solid var(--morado); }
+.pos-btn.activo { background: var(--morado); border-color: var(--cian); }
+
+.resultado-compositor { margin-top: 1rem; }
+.resultado-compositor h3 { color: var(--verde); }
+
+.fila-botones { display: flex; gap: 0.8rem; margin-top: 1rem; }
+.fila-botones button { flex: 1; }
+
 button { background: var(--morado); color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 1.05rem; font-weight: 600; transition: all .2s; }
 button:hover:not(:disabled) { filter: brightness(1.2); transform: translateY(-2px); }
 button:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -139,7 +169,61 @@ button.secundario { background: var(--panel2); border: 1px solid var(--morado); 
     <div id="galeria"></div>
     <div class="fila-botones">
       <button class="verde" onclick="abrirCarpeta()">📂 Abrir carpeta de videos</button>
+      <button class="secundario" onclick="abrirCompositor()">🎨 Componer imagen meme</button>
       <button class="secundario" onclick="reiniciar()">🔄 Empezar de nuevo</button>
+    </div>
+  </div>
+
+  <!-- Modal: Compositor de imagen -->
+  <div id="modal-compositor" class="modal oculto">
+    <div class="modal-contenido">
+      <div class="modal-header">
+        <h2>🎨 Componer tu imagen con El Típico</h2>
+        <button class="cerrar" onclick="cerrarCompositor()">✕</button>
+      </div>
+
+      <div class="compositor-grid">
+        <div class="col-upload">
+          <div id="drop-zona" class="drop-zona">
+            📤 Arrastra tu imagen aquí<br><small>o haz click para seleccionar</small>
+          </div>
+          <input type="file" id="input-imagen" accept="image/*" onchange="procesarArchivo(event)" style="display:none">
+          <div id="preview-original" class="preview oculto"></div>
+        </div>
+
+        <div class="col-controles">
+          <div class="control-grupo">
+            <label>Posición del personaje:</label>
+            <div class="botones-posicion">
+              <button class="pos-btn activo" data-pos="derecha" onclick="cambiarPosicion('derecha')">Derecha</button>
+              <button class="pos-btn" data-pos="izquierda" onclick="cambiarPosicion('izquierda')">Izquierda</button>
+              <button class="pos-btn" data-pos="centro" onclick="cambiarPosicion('centro')">Centro</button>
+              <button class="pos-btn" data-pos="arriba" onclick="cambiarPosicion('arriba')">Arriba</button>
+              <button class="pos-btn" data-pos="abajo" onclick="cambiarPosicion('abajo')">Abajo</button>
+            </div>
+          </div>
+
+          <div class="control-grupo">
+            <label>Tamaño del personaje: <span id="valor-escala">45%</span></label>
+            <input type="range" id="slider-escala" min="20" max="80" value="45" oninput="cambiarEscala(this.value)">
+          </div>
+
+          <div class="control-grupo">
+            <button class="verde gigante" onclick="generarCompuesto()">✨ Generar imagen</button>
+          </div>
+        </div>
+
+        <div class="col-preview">
+          <div id="preview-compuesto" class="preview-grande oculto"></div>
+          <p id="info-compuesto" style="text-align:center; color:var(--gris)">La previsualización aparecerá aquí</p>
+        </div>
+      </div>
+
+      <div id="resultado-compositor" class="oculto">
+        <h3>✅ Imagen lista</h3>
+        <div id="imagen-resultado"></div>
+        <button class="verde" onclick="descargarCompuesto()">⬇️ Descargar imagen</button>
+      </div>
     </div>
   </div>
 
@@ -380,6 +464,117 @@ async function abrirCarpeta() {
 async function reiniciar() {
   await fetch(API + '/api/reset', { method: 'POST' });
   location.reload();
+}
+
+// ---------- COMPOSITOR DE IMAGEN ----------
+let archivoSeleccionado = null;
+let posicionActual = 'derecha';
+let escalaActual = 0.45;
+let imagenCompuesta = null;
+
+function abrirCompositor() {
+  $('modal-compositor').classList.remove('oculto');
+  configDropZona();
+}
+
+function cerrarCompositor() {
+  $('modal-compositor').classList.add('oculto');
+  archivoSeleccionado = null;
+}
+
+function configDropZona() {
+  const zona = $('drop-zona');
+  zona.ondragover = (e) => { e.preventDefault(); zona.classList.add('activo'); };
+  zona.ondragleave = () => zona.classList.remove('activo');
+  zona.ondrop = (e) => { e.preventDefault(); zona.classList.remove('activo'); procesarArchivo({ dataTransfer: e.dataTransfer }); };
+  zona.onclick = () => $('input-imagen').click();
+}
+
+function procesarArchivo(event) {
+  let archivo;
+  if (event.dataTransfer) {
+    archivo = event.dataTransfer.files[0];
+  } else if (event.target.files) {
+    archivo = event.target.files[0];
+  }
+
+  if (!archivo || !archivo.type.startsWith('image/')) {
+    mostrarError('Selecciona una imagen válida');
+    return;
+  }
+
+  archivoSeleccionado = archivo;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const preview = $('preview-original');
+    preview.innerHTML = `<img src="${e.target.result}" style="max-width:100%; border-radius:8px;">`;
+    preview.classList.remove('oculto');
+    $('info-compuesto').textContent = 'Imagen cargada. Ajusta los controles y genera la composición.';
+  };
+  reader.readAsDataURL(archivo);
+}
+
+function cambiarPosicion(pos) {
+  document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('activo'));
+  document.querySelector(`[data-pos="${pos}"]`).classList.add('activo');
+  posicionActual = pos;
+}
+
+function cambiarEscala(valor) {
+  escalaActual = valor / 100;
+  $('valor-escala').textContent = valor + '%';
+}
+
+async function generarCompuesto() {
+  if (!archivoSeleccionado) {
+    mostrarError('Carga una imagen primero');
+    return;
+  }
+
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '⏳ Generando...';
+
+  try {
+    const formData = new FormData();
+    formData.append('imagen', archivoSeleccionado);
+    formData.append('posicion', posicionActual);
+    formData.append('escala', escalaActual);
+
+    const res = await fetch(API + '/api/composite-image', {
+      method: 'POST',
+      body: formData
+    }).then(r => r.json());
+
+    if (res.status !== 'success') throw new Error(res.error);
+
+    imagenCompuesta = res.imagen_path;
+    const preview = $('preview-compuesto');
+    preview.innerHTML = `<img src="/imagenes_generadas/${encodeURIComponent(res.imagen_filename)}" style="max-width:100%; border-radius:8px;">`;
+    preview.classList.remove('oculto');
+
+    $('info-compuesto').textContent = `✅ ${res.mensaje}`;
+    $('resultado-compositor').classList.remove('oculto');
+
+    btn.disabled = false;
+    btn.textContent = '✨ Generar imagen';
+  } catch (e) {
+    mostrarError(e.message);
+    btn.disabled = false;
+    btn.textContent = '✨ Generar imagen';
+  }
+}
+
+function descargarCompuesto() {
+  if (!imagenCompuesta) {
+    mostrarError('No hay imagen para descargar');
+    return;
+  }
+  const nombreArchivo = imagenCompuesta.split('/').pop();
+  const link = document.createElement('a');
+  link.href = `/imagenes_generadas/${encodeURIComponent(nombreArchivo)}`;
+  link.download = nombreArchivo;
+  link.click();
 }
 </script>
 </body>
